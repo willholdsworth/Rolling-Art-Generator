@@ -97,15 +97,15 @@ function generateSVG() {
             <!-- Draw the grey rectangle -->
             <rect x="0" y="${adjustedFoldHeight2}mm" width="${canvasWidth}mm" height="${foldHeight3}mm" fill="grey" />
             <!-- Draw canvas dimensions -->
-            <rect x="0" y="0" width="${canvasWidth}mm" height="${canvasHeight}mm" fill="none" stroke="black" stroke-width="0.1" />
+            <rect x="0" y="0" width="${canvasWidth}mm" height="${canvasHeight}mm" fill="none" stroke="black" stroke-width="0.3" />
             <!-- Draw vertical lines -->
-            <line x1="5mm" y1="0" x2="5mm" y2="${canvasHeight}mm" stroke="black" stroke-width="0.1" />
-            <line x1="${canvasWidth - 5}mm" y1="0" x2="${canvasWidth - 5}mm" y2="${canvasHeight}mm" stroke="black" stroke-width="0.1" />
+            <line x1="5mm" y1="0" x2="5mm" y2="${canvasHeight}mm" stroke="black" stroke-width="0.3" />
+            <line x1="${canvasWidth - 5}mm" y1="0" x2="${canvasWidth - 5}mm" y2="${canvasHeight}mm" stroke="black" stroke-width="0.3" />
             <!-- Draw horizontal lines -->
-            <line x1="0" y1="${foldHeight1}mm" x2="${canvasWidth}mm" y2="${foldHeight1}mm" stroke="black" stroke-width="0.1" />
-            <line x1="0" y1="${adjustedFoldHeight2}mm" x2="${canvasWidth}mm" y2="${adjustedFoldHeight2}mm" stroke="black" stroke-width="0.1" />
+            <line x1="0" y1="${foldHeight1}mm" x2="${canvasWidth}mm" y2="${foldHeight1}mm" stroke="black" stroke-width="0.3" />
+            <line x1="0" y1="${adjustedFoldHeight2}mm" x2="${canvasWidth}mm" y2="${adjustedFoldHeight2}mm" stroke="black" stroke-width="0.3" />
             <!-- Draw a line at the Artwork Height -->
-            <line x1="0" y1="${artworkHeight}mm" x2="${canvasWidth}mm" y2="${artworkHeight}mm" stroke="black" stroke-width="0.1" />
+            <line x1="0" y1="${artworkHeight}mm" x2="${canvasWidth}mm" y2="${artworkHeight}mm" stroke="black" stroke-width="0.3" />
             <!-- Add text -->
             <text x="${canvasWidth / 2}mm" y="9mm" font-family="Arial" font-size="2mm" text-anchor="middle">WELD ZIP PROFILE HERE</text>
             <text x="${canvasWidth / 2}mm" y="${canvasHeight - 2}mm" font-family="Arial" font-size="2mm" text-anchor="middle">APPLY TUBE TO THIS FACE</text>
