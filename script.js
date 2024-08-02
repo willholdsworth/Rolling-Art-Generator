@@ -1,127 +1,149 @@
-const canvas = document.getElementById('myCanvas');
-const ctx = canvas.getContext('2d');
+window.addEventListener('DOMContentLoaded', (event) => {
+    const cnv = document.getElementById('cnv');
+    const ctx = cnv.getContext('2d');
+    let fn = document.getElementById('fn').value, upImg, imgData;
 
-let filename = 'Rolling Artwork';
+    function drawCnv() {
+        const cW = getNum('cW');
+        const cH = getNum('cH');
+        const fH1 = getNum('fH1');
+        const fH2 = getNum('fH2');
+        const fH3 = getNum('fH3');
+        cnv.width = cW;
+        cnv.height = cH;
+        ctx.clearRect(0, 0, cW, cH);
+        drawRect(0, fH1 + fH2, cW, fH3, 'grey');
+        if (upImg) {
+            drawImgPreview(upImg, cW, fH1 + fH2, fH3);
+        }
+        drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
+        drawTxt(cW, cH);
+    }
 
-function updateCanvasSize() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    function getNum(id) {
+        return parseFloat(document.getElementById(id).value);
+    }
 
-    const canvasWidth = parseFloat(document.getElementById('canvasWidth').value);
-    const canvasHeight = parseFloat(document.getElementById('canvasHeight').value);
-    const foldHeight1 = parseFloat(document.getElementById('foldHeight1').value);
-    const foldHeight2 = parseFloat(document.getElementById('foldHeight2').value);
-    const foldHeight3 = parseFloat(document.getElementById('foldHeight3').value);
+    function drawRect(x, y, w, h, col) {
+        ctx.fillStyle = col;
+        ctx.fillRect(x, y, w, h);
+    }
 
-    const adjustedFoldHeight2 = foldHeight1 + foldHeight2;
-    const artworkHeight = foldHeight1 + foldHeight2 + foldHeight3;
+    function drawImgPreview(img, cW, y, h) {
+        const scl = Math.max(cW / img.width, h / img.height);
+        const sW = img.width * scl;
+        const sH = img.height * scl;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, y, cW, h);
+        ctx.clip();
+        ctx.drawImage(img, (cW - sW) / 2, y + (h - sH) / 2, sW, sH);
+        ctx.restore();
+    }
 
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    function drawLn(cW, cH, hs) {
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0, 0, cW, cH);
+        hs.forEach(h => {
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            ctx.lineTo(cW, h);
+            ctx.stroke();
+        });
+    }
 
-    // Draw the grey rectangle
-    ctx.fillStyle = 'grey';
-    ctx.fillRect(0, adjustedFoldHeight2, canvasWidth, foldHeight3);
+    function drawTxt(cW, cH) {
+        ctx.font = '2mm Arial';
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'center';
+        ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
+        ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 2);
+        ctx.textAlign = 'left';
+        ctx.fillText(fn, 15, 9);
+    }
 
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    function genPDF() {
+        const cW = getNum('cW');
+        const cH = getNum('cH');
+        const fH1 = getNum('fH1');
+        const fH2 = getNum('fH2');
+        const fH3 = getNum('fH3');
+        fn = document.getElementById('fn').value || 'default_filename';
+        const aFH2 = fH1 + fH2;
+        const aH = fH1 + fH2 + fH3;
 
-    ctx.beginPath();
-    ctx.moveTo(5, 0);
-    ctx.lineTo(5, canvasHeight);
-    ctx.stroke();
+        const cWPoints = cW * 72 / 25.4;
+        const cHPoints = cH * 72 / 25.4;
 
-    ctx.beginPath();
-    ctx.moveTo(canvasWidth - 5, 0);
-    ctx.lineTo(canvasWidth - 5, canvasHeight);
-    ctx.stroke();
+        const pdf = new jsPDF({
+            orientation: cW > cH ? 'landscape' : 'portrait',
+            unit: 'pt',
+            format: [cWPoints, cHPoints]
+        });
 
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, foldHeight1);
-    ctx.lineTo(canvasWidth, foldHeight1);
-    ctx.stroke();
+        if (upImg) {
+            const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+            const sW = upImg.width * scl;
+            const sH = upImg.height * scl;
+            const imgX = (cWPoints - sW * 72 / 25.4) / 2;
+            const imgY = (aFH2 + fH3 / 2) * 72 / 25.4 - (sH * 72 / 25.4) / 2;
 
-    ctx.beginPath();
-    ctx.moveTo(0, adjustedFoldHeight2);
-    ctx.lineTo(canvasWidth, adjustedFoldHeight2);
-    ctx.stroke();
+            pdf.addImage(upImg.src, 'PNG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
+        }
 
-    ctx.beginPath();
-    ctx.moveTo(0, artworkHeight);
-    ctx.lineTo(canvasWidth, artworkHeight);
-    ctx.stroke();
+        // Draw white rectangles
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, cWPoints, (fH1 + fH2) * 72 / 25.4, 'F');
+        pdf.rect(0, aH * 72 / 25.4, cWPoints, (cH - aH) * 72 / 25.4, 'F');
 
-    ctx.font = '2mm Arial';
-    ctx.fillStyle = 'black';
-    ctx.textAlign = 'center';
-    ctx.fillText('WELD ZIP PROFILE HERE', canvasWidth / 2, 9);
+        pdf.setLineWidth(0.1 * 72 / 25.4);
+        pdf.rect(0, 0, cWPoints, cHPoints);
+        pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHPoints);
+        pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHPoints);
+        pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
+        pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
+        pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
 
-    ctx.fillText('APPLY TUBE TO THIS FACE', canvasWidth / 2, canvasHeight - 2);
+        pdf.setFont("Helvetica", 2 * 72 / 25.4);
+        pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+        pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
+        pdf.text(fn, 15 * 72 / 25.4, 9 * 72 / 25.4);
 
-    ctx.font = '2mm Arial';
-    ctx.fillStyle = 'black';
-    ctx.textAlign = 'left'; 
-    ctx.fillText(filename, 15, 9);
-}
+        pdf.save(`${fn}.pdf`);
+    }
 
-function updateFilename() {
-    filename = document.getElementById('filename').value || 'Rolling Artwork';
-    updateCanvasSize(); 
-}
+    function handleImgUp(event) {
+        const rdr = new FileReader();
+        rdr.onload = function(event) {
+            upImg = new Image();
+            upImg.onload = function() {
+                drawCnv();
+            };
+            upImg.src = event.target.result;
+        };
+        rdr.readAsDataURL(event.target.files[0]);
+    }
 
-document.getElementById('filename').addEventListener('input', updateFilename);
-document.getElementById('foldHeight1').addEventListener('input', updateCanvasSize); 
-document.getElementById('foldHeight2').addEventListener('input', updateCanvasSize); 
-document.getElementById('foldHeight3').addEventListener('input', updateCanvasSize); 
-document.getElementById('canvasWidth').addEventListener('input', updateCanvasSize); 
-document.getElementById('canvasHeight').addEventListener('input', updateCanvasSize); 
+    function rmvImg() {
+        upImg = null;
+        imgData = null;
+        drawCnv();
+    }
 
-document.getElementById('generateButton').addEventListener('click', generateSVG);
+    document.getElementById('fn').addEventListener('input', function() {
+        fn = this.value;
+        drawCnv();
+    });
 
-function generateSVG() {
-    const canvasWidth = parseFloat(document.getElementById('canvasWidth').value);
-    const canvasHeight = parseFloat(document.getElementById('canvasHeight').value);
-    const foldHeight1 = parseFloat(document.getElementById('foldHeight1').value);
-    const foldHeight2 = parseFloat(document.getElementById('foldHeight2').value);
-    const foldHeight3 = parseFloat(document.getElementById('foldHeight3').value);
+    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => {
+        document.getElementById(id).addEventListener('input', drawCnv);
+    });
 
-    filename = document.getElementById('filename').value || 'default_filename';
+    document.getElementById('genBtn').addEventListener('click', genPDF);
+    document.getElementById('imgLdr').addEventListener('change', handleImgUp);
+    document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
+    document.getElementById('rmvBtn').addEventListener('click', rmvImg);
 
-    const adjustedFoldHeight2 = foldHeight1 + foldHeight2;
-    const artworkHeight = foldHeight1 + foldHeight2 + foldHeight3;
-
-    const svgContent = `
-        <svg width="${canvasWidth}mm" height="${canvasHeight}mm" xmlns="http://www.w3.org/2000/svg">
-            <!-- Draw the grey rectangle -->
-            <rect x="0" y="${adjustedFoldHeight2}mm" width="${canvasWidth}mm" height="${foldHeight3}mm" fill="grey" />
-            <!-- Draw canvas dimensions -->
-            <rect x="0" y="0" width="${canvasWidth}mm" height="${canvasHeight}mm" fill="none" stroke="black" stroke-width="0.3" />
-            <!-- Draw vertical lines -->
-            <line x1="5mm" y1="0" x2="5mm" y2="${canvasHeight}mm" stroke="black" stroke-width="0.3" />
-            <line x1="${canvasWidth - 5}mm" y1="0" x2="${canvasWidth - 5}mm" y2="${canvasHeight}mm" stroke="black" stroke-width="0.3" />
-            <!-- Draw horizontal lines -->
-            <line x1="0" y1="${foldHeight1}mm" x2="${canvasWidth}mm" y2="${foldHeight1}mm" stroke="black" stroke-width="0.3" />
-            <line x1="0" y1="${adjustedFoldHeight2}mm" x2="${canvasWidth}mm" y2="${adjustedFoldHeight2}mm" stroke="black" stroke-width="0.3" />
-            <!-- Draw a line at the Artwork Height -->
-            <line x1="0" y1="${artworkHeight}mm" x2="${canvasWidth}mm" y2="${artworkHeight}mm" stroke="black" stroke-width="0.3" />
-            <!-- Add text -->
-            <text x="${canvasWidth / 2}mm" y="9mm" font-family="Arial" font-size="2mm" text-anchor="middle">WELD ZIP PROFILE HERE</text>
-            <text x="${canvasWidth / 2}mm" y="${canvasHeight - 2}mm" font-family="Arial" font-size="2mm" text-anchor="middle">APPLY TUBE TO THIS FACE</text>
-            <text x="15mm" y="9mm" font-family="Arial" font-size="2mm" text-anchor="left">${filename}</text>
-        </svg>
-    `;
-
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}.svg`;
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-
-updateCanvasSize();
+    drawCnv();
+});
