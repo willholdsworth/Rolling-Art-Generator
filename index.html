@@ -6,68 +6,39 @@
     <title>Canvas to PDF</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.7/canvg.min.js"></script>
-    <style>
-        .spinner {
-            margin: 100px auto;
-            width: 40px;
-            height: 40px;
-            position: relative;
-        }
-
-        .spinner::before {
-            content: '';
-            display: block;
-            padding-top: 100%;
-        }
-
-        .spinner .spinner-icon {
-            width: 32px;
-            height: 32px;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            margin-left: -16px;
-            margin-top: -16px;
-            border: 4px solid #ccc;
-            border-top-color: #333;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(1turn); }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <button id="genBtn">Generate PDF</button>
-    <button id="upBtn">Add Image</button>
-    <button id="rmvBtn">Remove Image</button>
+    <div class="button-container">
+        <button class="btn arrow-btn" id="leftArrow">←</button>
+        <button class="btn arrow-btn" id="rightArrow">→</button>
+        <button class="btn" id="genBtn">Generate PDF</button>
+        <button class="btn" id="upBtn">Add Image</button>
+        <button class="btn" id="rmvBtn">Remove Image</button>
+        <div id="loader" class="loader"></div>
+    </div>
+    <div class="input-container">
+        <label for="cW">ARTWORK WIDTH (mm):</label>
+        <input type="number" id="cW" placeholder="Enter width" value="1000">
+        <br>
+        <label for="cH">ARTWORK HEIGHT (mm):</label>
+        <input type="number" id="cH" placeholder="Enter height" value="1500">
+        <br>
+        <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
+        <input type="number" id="fH1" placeholder="Enter height" value="12">
+        <br>
+        <label for="fH2">GAP BELOW ZIP (DEFAULT 41.8mm):</label>
+        <input type="number" id="fH2" placeholder="Enter height" value="41.8">
+        <br>
+        <label for="fH3">ARTWORK HEIGHT (DEFAULT 700mm):</label>
+        <input type="number" id="fH3" placeholder="Enter height" value="700">
+        <br>
+        <label for="fn">NAME OF FILE:</label>
+        <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
+    </div>
     <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
-    <br><p></p>
-    <label for="cW">ARTWORK WIDTH (mm):</label>
-    <input type="number" id="cW" placeholder="Enter width" value="1000">
-    <br>
-    <label for="cH">ARTWORK HEIGHT (mm):</label>
-    <input type="number" id="cH" placeholder="Enter height" value="1500">
-    <br>
-    <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
-    <input type="number" id="fH1" placeholder="Enter height" value="12">
-    <br>
-    <label for="fH2">GAP BELOW ZIP (DEFAULT 41.8mm):</label>
-    <input type="number" id="fH2" placeholder="Enter height" value="41.8">
-    <br>
-    <label for="fH3">ARTWORK HEIGHT (DEFAULT 700mm):</label>
-    <input type="number" id="fH3" placeholder="Enter height" value="700">
-    <br>
-    <label for="fn">NAME OF FILE:</label>
-    <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
-    <br>
-    <canvas id="cnv"></canvas>
-    <div id="loader" style="display: none;">
-        <div class="spinner">
-            <div class="spinner-icon"></div>
-        </div>
+    <div class="canvas-container">
+        <canvas id="cnv"></canvas>
     </div>
     <script src="script.js"></script>
 </body>
