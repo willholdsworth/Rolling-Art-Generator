@@ -208,6 +208,9 @@
     pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
     pdf.text(fn, 15 * 72 / 25.4, 9 * 72 / 25.4);
 
+    const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
+    pdf.text(measurements, cWPoints - 15 * 72 / 25.4, 9 * 72 / 25.4, { align: 'right' });
+
     pdf.save(`${fn}.pdf`);
 }
 
