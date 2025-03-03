@@ -61,7 +61,6 @@
             let drawExtraLine = false;
             let isRA7BTemplate = false;
 
-            // Drag functionality variables
             let isDragging = false;
             let dragStartX = 0;
             let dragStartY = 0;
@@ -306,7 +305,6 @@
                 intervalId = null;
             }
 
-            // Drag functionality
             function startDrag(event) {
                 if (!upImg) return;
 
@@ -321,7 +319,6 @@
                     clientY = event.touches[0].clientY;
                 }
 
-                // Calculate image bounds
                 const cW = getNum('cW');
                 const fH3 = getNum('fH3');
                 const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
@@ -333,7 +330,6 @@
                 const imgRight = imgLeft + sW;
                 const imgBottom = imgTop + sH;
 
-                // Check if the touch is within the image bounds
                 const touchX = (clientX - rect.left) / (rect.width / cW);
                 const touchY = (clientY - rect.top) / (rect.height / cH);
 
@@ -345,7 +341,6 @@
                     dragStartX -= imgXOffset;
                     dragStartY -= imgYOffset;
 
-                    // Prevent default behavior only if touching the image
                     event.preventDefault();
                 }
             }
@@ -367,7 +362,6 @@
                 imgXOffset = (clientX - rect.left) - dragStartX;
                 imgYOffset = (clientY - rect.top) - dragStartY;
 
-                // Boundary constraints
                 const cW = getNum('cW');
                 const fH3 = getNum('fH3');
                 const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
@@ -379,7 +373,6 @@
 
                 drawCnv();
 
-                // Prevent default behavior while dragging the image
                 event.preventDefault();
             }
 
@@ -387,7 +380,6 @@
                 isDragging = false;
             }
 
-            // Event listeners for drag functionality
             cnv.addEventListener('mousedown', startDrag);
             cnv.addEventListener('mousemove', dragImage);
             cnv.addEventListener('mouseup', endDrag);
@@ -404,7 +396,6 @@
             cnv.addEventListener('touchend', endDrag);
             cnv.addEventListener('touchcancel', endDrag);
 
-            // Existing event listeners
             document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
             document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
             document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
