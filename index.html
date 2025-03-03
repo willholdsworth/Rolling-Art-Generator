@@ -96,11 +96,17 @@
 
 input[type="number"], input[type="text"] {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: clamp(8px, 2vw, 12px);
+    height: clamp(30px, 5vw, 45px);
+    margin-bottom: 5px; 
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+}
+
+label {
+    font-size: clamp(10px, 2vw, 14px);
+    margin-bottom: clamp(2px, 1vw, 4px); 
 }
 
 .canvas-container {
@@ -130,29 +136,28 @@ input[type="number"], input[type="text"] {
 }
 
 @media (max-width: 768px) {
-    .button-container {
-        gap: 3px;
+    label {
+        font-size: clamp(9px, 2vw, 12px);
+        margin-bottom: clamp(2px, 1vw, 4px); 
     }
-    .ra-button-container {
-        gap: 5px;
-    }
-    .ra-button-container .button-container {
-        width: 100%;
+
+    input[type="number"], input[type="text"] {
+        padding: clamp(6px, 1.5vw, 10px);
+        height: clamp(28px, 5vw, 40px);
     }
 }
 
 @media (max-width: 480px) {
-    .button-container {
-        gap: 2px;
+    label {
+        font-size: clamp(8px, 2vw, 10px);
+        margin-bottom: clamp(1px, 1vw, 3px); 
     }
-    .ra-button-container {
-        gap: 3px;
-    }
-    .ra-button-container .button-container {
-        width: 100%;
+
+    input[type="number"], input[type="text"] {
+        padding: clamp(5px, 1.2vw, 8px);
+        height: clamp(25px, 4vw, 35px);
     }
 }
-
 
     </style>
 </head>
