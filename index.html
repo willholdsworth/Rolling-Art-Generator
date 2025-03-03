@@ -33,6 +33,9 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+        .ra-button-container {
+            margin-top: 20px;
+        }
         .input-container {
             margin-bottom: 20px;
         }
@@ -42,7 +45,7 @@
             cursor: pointer;
             flex: 1;
             min-width: 100px;
-			min-height: 58px;
+            min-height: 58px;
             text-align: center;
             border: none;
             border-radius: 4px;
@@ -66,6 +69,9 @@
         .canvas-container {
             margin-top: 20px;
             text-align: center;
+            padding: 0px;
+            border: 0px solid #ccc;
+            background-color: #fff;
         }
         .loader {
             border: 8px solid #f3f3f3;
@@ -95,22 +101,30 @@
             <div id="loader" class="loader"></div>
         </div>
         <div class="input-container">
-			<label for="cW">CANVAS WIDTH (mm):</label>
-			<input type="number" id="cW" placeholder="Enter width" value="1000">
-			<label for="cH">CANVAS HEIGHT (mm):</label>
-			<input type="number" id="cH" placeholder="Enter height" value="1500">
-			<label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
-			<input type="number" id="fH1" placeholder="Enter height" value="12" step="0.1">
-			<label for="fH2">GAP BELOW ZIP (DEFAULT 41.8mm):</label>
-			<input type="number" id="fH2" placeholder="Enter height" value="41.8" step="0.1">
-			<label for="fH3">ARTWORK HEIGHT (DEFAULT 700mm):</label>
-			<input type="number" id="fH3" placeholder="Enter height" value="700" step="0.1">
-			<label for="fn">FILE NAME:</label>
-			<input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
-</div>
+            <label for="cW">CANVAS WIDTH (mm):</label>
+            <input type="number" id="cW" placeholder="Enter width" value="1000">
+            <label for="cH">CANVAS HEIGHT (mm):</label>
+            <input type="number" id="cH" placeholder="Enter height" value="1500">
+            <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
+            <input type="number" id="fH1" placeholder="Enter height" value="12" step="0.1">
+            <label for="fH2">GAP BELOW ZIP (DEFAULT 41.8mm):</label>
+            <input type="number" id="fH2" placeholder="Enter height" value="41.8" step="0.1">
+            <label for="fH3">ARTWORK HEIGHT (DEFAULT 700mm):</label>
+            <input type="number" id="fH3" placeholder="Enter height" value="700" step="0.1">
+            <label for="fn">FILE NAME:</label>
+            <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
+        </div>
         <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
         <div class="canvas-container">
             <canvas id="cnv"></canvas>
+        </div>
+        <div class="ra-button-container">
+            <div class="button-container">
+                <button class="btn" id="ra5Btn">RA5</button>
+                <button class="btn" id="ra6Btn">RA6</button>
+                <button class="btn" id="ra7aBtn">RA7 (A)</button>
+                <button class="btn" id="ra7bBtn">RA7 (B)</button>
+            </div>
         </div>
     </div>
     <script>
@@ -121,6 +135,8 @@
             let imgXOffset = 0;
             let imgYOffset = 0;
             let intervalId = null;
+            let drawExtraLine = false;
+            let isRA7BTemplate = false; 
 
             function drawCnv() {
                 const container = document.querySelector('.canvas-container');
@@ -147,9 +163,17 @@
                 }
                 drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
                 drawTxt(cW, cH);
+                
+                if (drawExtraLine) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, cH - 12);
+                    ctx.lineTo(cW, cH - 12);
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
 
                 ctx.restore();
-
                 updateArrowButtons(cW);
             }
 
@@ -226,7 +250,7 @@
                     format: [cWPoints, cHPoints]
                 });
 
-                if (upImg) {
+                if (!isRA7BTemplate && upImg) {
                     const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
                     const sW = upImg.width * scl;
                     const sH = upImg.height * scl;
@@ -254,6 +278,11 @@
                 pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
                 pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
                 pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
+
+                if (drawExtraLine) {
+                    pdf.setLineWidth(1);
+                    pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
+                }
 
                 pdf.setFont("Helvetica", 2 * 72 / 25.4);
                 pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
@@ -294,6 +323,8 @@
             }
 
             function shiftImage(direction, vertical = false) {
+                if (!upImg) return;
+
                 const cW = getNum('cW');
                 const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
                 const sW = upImg.width * scl;
@@ -318,6 +349,14 @@
             }
 
             function updateArrowButtons(cW) {
+                if (!upImg) {
+                    document.getElementById('leftArrow').disabled = true;
+                    document.getElementById('rightArrow').disabled = true;
+                    document.getElementById('upArrow').disabled = true;
+                    document.getElementById('downArrow').disabled = true;
+                    return;
+                }
+
                 const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
                 const sW = upImg.width * scl;
                 const sH = upImg.height * scl;
@@ -344,13 +383,8 @@
             document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
             document.getElementById('downArrow').addEventListener('click', () => shiftImage('down', true));
 
-            document.getElementById('leftArrow').addEventListener('mousedown', () => startMoving('left'));
-            document.getElementById('rightArrow').addEventListener('mousedown', () => startMoving('right'));
-            document.getElementById('upArrow').addEventListener('mousedown', () => startMoving('up', true));
-            document.getElementById('downArrow').addEventListener('mousedown', () => startMoving('down', true));
-
-            [document.getElementById('leftArrow'), document.getElementById('rightArrow'), 
-             document.getElementById('upArrow'), document.getElementById('downArrow')].forEach(button => {
+            [document.getElementById('leftArrow'), document.getElementById('rightArrow'), document.getElementById('upArrow'), document.getElementById('downArrow')].forEach(button => {
+                button.addEventListener('mousedown', () => startMoving(button.id.replace('Arrow', ''), button.id === 'upArrow' || button.id === 'downArrow'));
                 button.addEventListener('mouseup', stopMoving);
                 button.addEventListener('mouseleave', stopMoving);
             });
@@ -372,6 +406,43 @@
             window.addEventListener('resize', drawCnv);
 
             drawCnv();
+
+            function setValues(cW, cH, fH1, fH2, fH3) {
+                document.getElementById('cW').value = cW;
+                document.getElementById('cH').value = cH;
+                document.getElementById('fH1').value = fH1;
+                document.getElementById('fH2').value = fH2;
+                document.getElementById('fH3').value = fH3;
+                drawCnv();
+            }
+
+            document.getElementById('ra5Btn').addEventListener('click', () => {
+                setValues(1296, 1825, 12, 44, 776);
+                drawExtraLine = false;
+                isRA7BTemplate = false;
+                drawCnv();
+            });
+
+            document.getElementById('ra6Btn').addEventListener('click', () => {
+                setValues(1516, 2100, 12, 37, 920);
+                drawExtraLine = false;
+                isRA7BTemplate = false;
+                drawCnv();
+            });
+
+            document.getElementById('ra7aBtn').addEventListener('click', () => {
+                setValues(1786, 1206, 12, 46.5, 1057);
+                drawExtraLine = true;
+                isRA7BTemplate = false;
+                drawCnv();
+            });
+
+            document.getElementById('ra7bBtn').addEventListener('click', () => {
+                setValues(1786, 1206, 12, 0, 0);
+                drawExtraLine = false;
+                isRA7BTemplate = true; 
+                drawCnv();
+            });
         });
     </script>
 </body>
