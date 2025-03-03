@@ -7,12 +7,175 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.7/canvg.min.js"></script>
     <style>
-        /* Your existing CSS styles */
+        body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+}
+
+.title {
+	font-size: clamp(15px, 2vw, 24px);
+	text-align: left;
+	margin-bottom: 10px;
+	margin-top: -5px;
+	width: 100%;
+	max-width: 100%;
+}
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.button-container {
+	padding: clamp(0px, 1vw, 0px);
+    height: clamp(58px, 1vw, 58px);
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 5px;
+    margin-bottom: 10px;
+    overflow: hidden;
+	margin-top: -5px;
+}
+
+.ra-button-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+.ra-button-container .button-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    width: 100%;
+}
+
+.ra-button-container .btn {
+    font-size: clamp(9px, 1vw, 16px);
+    padding: clamp(6px, 2vw, 6px);
+    flex-grow: 1;
+    min-width: 50px;
+    max-width: 250px;
+    min-height: clamp(30px, 6vw, 58px);
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    background-color: #000000;
+    color: white;
+    white-space: nowrap;
+}
+
+.btn, .arrow-btn {
+    font-size: clamp(9px, 2vw, 16px);
+    padding: clamp(6px, 1.5vw, 10px);
+    flex: 1;
+    min-width: auto;
+    min-height: clamp(30px, 6vw, 40px);
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    background-color: #000000;
+    color: white;
+    white-space: normal;
+}
+
+.btn:hover, .arrow-btn:hover {
+    background-color: #505050;
+}
+
+.arrow-btn {
+    font-size: clamp(16px, 3vw, 24px);
+}
+
+.input-container {
+    margin-bottom: 20px;
+}
+
+input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: clamp(8px, 2vw, 12px);
+    height: clamp(30px, 5vw, 30px);
+    margin-bottom: 5px; 
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+label {
+    font-size: clamp(9px, 2vw, 14px);
+    margin-bottom: clamp(2px, 1vw, 4px); 
+}
+
+.canvas-container {
+    margin-top: 20px;
+    text-align: center;
+    padding: 0px;
+    border: 1px solid #fff;
+    background-color: #fff;
+    width: 100%; 
+    max-width: 100%; 
+    box-sizing: border-box; 
+}
+
+.loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 1rem;
+    height: 1rem;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    label {
+        font-size: clamp(9px, 2vw, 12px);
+        margin-bottom: clamp(2px, 1vw, 4px); 
+    }
+
+    input[type="number"], input[type="text"] {
+        padding: clamp(5px, 1.5vw, 10px);
+        height: clamp(20px, 1vw, 20px);
+    }
+}
+
+@media (max-width: 480px) {
+    label {
+        font-size: clamp(8px, 2vw, 10px);
+        margin-bottom: clamp(1px, 1vw, 3px); 
+    }
+
+    input[type="number"], input[type="text"] {
+        padding: clamp(5px, 1.2vw, 8px);
+        height: clamp(25px, 4vw, 30px);
+    }
+}
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">ROLLING ARTWORK CANVAS GENERATOR™</h1>
+		<h1 class="title">ROLLING ARTWORK CANVAS GENERATOR</h1>
         <div class="input-container">
             <label for="cW">CANVAS WIDTH (mm):</label>
             <input type="number" id="cW" placeholder="Enter width" value="1296">
@@ -22,13 +185,13 @@
             <input type="number" id="fH1" placeholder="Enter height" value="12" step="0.1">
             <label for="fH2">GAP BELOW ZIP (DEFAULT 44mm):</label>
             <input type="number" id="fH2" placeholder="Enter height" value="44" step="0.1">
-            <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
+            <label for="fH3">ARTWORK HEIGHT (DEFAULT 700mm):</label>
             <input type="number" id="fH3" placeholder="Enter height" value="776" step="0.1">
             <label for="fn">FILE NAME:</label>
             <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
         </div>
         <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
-        <div class="button-container">
+		<div class="button-container">
             <button class="btn arrow-btn" id="leftArrow">←</button>
             <button class="btn arrow-btn" id="rightArrow">→</button>
             <button class="btn arrow-btn" id="upArrow"> ↑ </button>
@@ -51,417 +214,390 @@
         </div>
     </div>
     <script>
-        window.addEventListener('DOMContentLoaded', (event) => {
-            const cnv = document.getElementById('cnv');
-            const ctx = cnv.getContext('2d');
-            let fn = document.getElementById('fn').value, upImg, imgData;
-            let imgXOffset = 0;
-            let imgYOffset = 0;
-            let intervalId = null;
-            let drawExtraLine = false;
-            let isRA7BTemplate = false;
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const cnv = document.getElementById('cnv');
+        const ctx = cnv.getContext('2d');
+        let fn = document.getElementById('fn').value, upImg, imgData;
+        let imgXOffset = 0;
+        let imgYOffset = 0;
+        let intervalId = null;
+        let drawExtraLine = false;
+        let isRA7BTemplate = false;
 
-            let isDragging = false;
-            let dragStartX = 0;
-            let dragStartY = 0;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
 
-            function drawCnv() {
-                const container = document.querySelector('.canvas-container');
-                const containerWidth = container.clientWidth;
-                const cW = getNum('cW');
-                const cH = getNum('cH');
-                const fH1 = getNum('fH1');
-                const fH2 = getNum('fH2');
-                const fH3 = getNum('fH3');
+        function drawCnv() {
+            const container = document.querySelector('.canvas-container');
+            const containerWidth = container.clientWidth;
+            const cW = getNum('cW');
+            const cH = getNum('cH');
+            const fH1 = getNum('fH1');
+            const fH2 = getNum('fH2');
+            const fH3 = getNum('fH3');
 
-                const scaleFactor = containerWidth / cW;
+            const scaleFactor = containerWidth / cW;
 
-                cnv.width = cW * scaleFactor;
-                cnv.height = cH * scaleFactor;
+            cnv.width = cW * scaleFactor;
+            cnv.height = cH * scaleFactor;
 
-                ctx.clearRect(0, 0, cnv.width, cnv.height);
+            ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-                ctx.save();
-                ctx.scale(scaleFactor, scaleFactor);
+            ctx.save();
+            ctx.scale(scaleFactor, scaleFactor);
 
-                drawRect(0, fH1 + fH2, cW, fH3, 'grey');
-                if (upImg) {
-                    drawImgPreview(upImg, cW, fH1 + fH2, fH3);
-                }
-                drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
-                drawTxt(cW, cH);
-
-                if (drawExtraLine) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, cH - 12);
-                    ctx.lineTo(cW, cH - 12);
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-                updateArrowButtons(cW);
+            drawRect(0, fH1 + fH2, cW, fH3, 'grey');
+            if (upImg) {
+                drawImgPreview(upImg, cW, fH1 + fH2, fH3);
             }
+            drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
+            drawTxt(cW, cH);
 
-            function getNum(id) {
-                return parseFloat(document.getElementById(id).value);
-            }
-
-            function drawRect(x, y, w, h, col) {
-                ctx.fillStyle = col;
-                ctx.fillRect(x, y, w, h);
-            }
-
-            function drawImgPreview(img, cW, y, h) {
-                const scl = Math.max(cW / img.width, h / img.height);
-                const sW = img.width * scl;
-                const sH = img.height * scl;
-                ctx.save();
+            if (drawExtraLine) {
                 ctx.beginPath();
-                ctx.rect(0, y, cW, h);
-                ctx.clip();
-                ctx.drawImage(img, (cW - sW) / 2 + imgXOffset, y + (h - sH) / 2 + imgYOffset, sW, sH);
-                ctx.restore();
-            }
-
-            function drawLn(cW, cH, hs) {
+                ctx.moveTo(0, cH - 12);
+                ctx.lineTo(cW, cH - 12);
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 1;
-                ctx.strokeRect(0, 0, cW, cH);
-                hs.forEach(h => {
-                    ctx.beginPath();
-                    ctx.moveTo(0, h);
-                    ctx.lineTo(cW, h);
-                    ctx.stroke();
-                });
-
-                const offset = 5 * 72 / 25.4;
-                ctx.beginPath();
-                ctx.moveTo(offset, 0);
-                ctx.lineTo(offset, cH);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(cW - offset, 0);
-                ctx.lineTo(cW - offset, cH);
                 ctx.stroke();
             }
 
-            function drawTxt(cW, cH) {
-                ctx.font = '2mm Arial';
-                ctx.fillStyle = 'black';
-                ctx.textAlign = 'center';
-                ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
-                ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 2);
-                ctx.textAlign = 'left';
-                ctx.fillText(fn, 15, 9);
+            ctx.restore();
+            updateArrowButtons(cW);
+        }
+
+        function getNum(id) {
+            return parseFloat(document.getElementById(id).value);
+        }
+
+        function drawRect(x, y, w, h, col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(x, y, w, h);
+        }
+
+        function drawImgPreview(img, cW, y, h) {
+            const scl = Math.max(cW / img.width, h / img.height);
+            const sW = img.width * scl;
+            const sH = img.height * scl;
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, y, cW, h);
+            ctx.clip();
+            ctx.drawImage(img, (cW - sW) / 2 + imgXOffset, y + (h - sH) / 2 + imgYOffset, sW, sH);
+            ctx.restore();
+        }
+
+        function drawLn(cW, cH, hs) {
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, cW, cH);
+            hs.forEach(h => {
+                ctx.beginPath();
+                ctx.moveTo(0, h);
+                ctx.lineTo(cW, h);
+                ctx.stroke();
+            });
+
+            const offset = 5 * 72 / 25.4;
+            ctx.beginPath();
+            ctx.moveTo(offset, 0);
+            ctx.lineTo(offset, cH);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cW - offset, 0);
+            ctx.lineTo(cW - offset, cH);
+            ctx.stroke();
+        }
+
+        function drawTxt(cW, cH) {
+            ctx.font = '2mm Arial';
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
+            ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 2);
+            ctx.textAlign = 'left';
+            ctx.fillText(fn, 15, 9);
+        }
+
+        function genPDF() {
+            const cW = getNum('cW');
+            const cH = getNum('cH');
+            const fH1 = getNum('fH1');
+            const fH2 = getNum('fH2');
+            const fH3 = getNum('fH3');
+            fn = document.getElementById('fn').value || 'default_filename';
+            const aFH2 = fH1 + fH2;
+            const aH = fH1 + fH2 + fH3;
+
+            const cWPoints = cW * 72 / 25.4;
+            const cHPoints = cH * 72 / 25.4;
+
+            const pdf = new jsPDF({
+                orientation: cW > cH ? 'landscape' : 'portrait',
+                unit: 'pt',
+                format: [cWPoints, cHPoints]
+            });
+
+            if (!isRA7BTemplate && upImg) {
+                const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+                const sW = upImg.width * scl;
+                const sH = upImg.height * scl;
+                const imgX = (cWPoints - sW * 72 / 25.4) / 2 + imgXOffset * 72 / 25.4;
+                const imgY = (aFH2 + fH3 / 2) * 72 / 25.4 - (sH * 72 / 25.4) / 2 + imgYOffset * 72 / 25.4;
+
+                let canvas = document.createElement('canvas');
+                canvas.width = upImg.width;
+                canvas.height = upImg.height;
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(upImg, 0, 0, canvas.width, canvas.height);
+                let imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
             }
 
-            function genPDF() {
-                const cW = getNum('cW');
-                const cH = getNum('cH');
-                const fH1 = getNum('fH1');
-                const fH2 = getNum('fH2');
-                const fH3 = getNum('fH3');
-                fn = document.getElementById('fn').value || 'default_filename';
-                const aFH2 = fH1 + fH2;
-                const aH = fH1 + fH2 + fH3;
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, cWPoints, (fH1 + fH2) * 72 / 25.4, 'F');
+            pdf.rect(0, aH * 72 / 25.4, cWPoints, (cH - aH) * 72 / 25.4, 'F');
 
-                const cWPoints = cW * 72 / 25.4;
-                const cHPoints = cH * 72 / 25.4;
+            pdf.setLineWidth(0.1 * 72 / 25.4);
+            pdf.rect(0, 0, cWPoints, cHPoints);
+            pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHPoints);
+            pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHPoints);
+            pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
+            pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
+            pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
 
-                const pdf = new jsPDF({
-                    orientation: cW > cH ? 'landscape' : 'portrait',
-                    unit: 'pt',
-                    format: [cWPoints, cHPoints]
-                });
-
-                if (!isRA7BTemplate && upImg) {
-                    const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
-                    const sW = upImg.width * scl;
-                    const sH = upImg.height * scl;
-                    const imgX = (cWPoints - sW * 72 / 25.4) / 2 + imgXOffset * 72 / 25.4;
-                    const imgY = (aFH2 + fH3 / 2) * 72 / 25.4 - (sH * 72 / 25.4) / 2 + imgYOffset * 72 / 25.4;
-
-                    let canvas = document.createElement('canvas');
-                    canvas.width = upImg.width;
-                    canvas.height = upImg.height;
-                    let ctx = canvas.getContext('2d');
-                    ctx.drawImage(upImg, 0, 0, canvas.width, canvas.height);
-                    let imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-                    pdf.addImage(imgData, 'JPEG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
-                }
-
-                pdf.setFillColor(255, 255, 255);
-                pdf.rect(0, 0, cWPoints, (fH1 + fH2) * 72 / 25.4, 'F');
-                pdf.rect(0, aH * 72 / 25.4, cWPoints, (cH - aH) * 72 / 25.4, 'F');
-
-                pdf.setLineWidth(0.1 * 72 / 25.4);
-                pdf.rect(0, 0, cWPoints, cHPoints);
-                pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHPoints);
-                pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHPoints);
-                pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
-                pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
-                pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
-
-                if (drawExtraLine) {
-                    pdf.setLineWidth(1);
-                    pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
-                }
-
-                pdf.setFont("Helvetica", 2 * 72 / 25.4);
-                pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
-                pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
-                pdf.text(fn, 15 * 72 / 25.4, 9 * 72 / 25.4);
-
-                const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
-                pdf.text(measurements, cWPoints - 15 * 72 / 25.4, 9 * 72 / 25.4, { align: 'right' });
-
-                pdf.save(`${fn}.pdf`);
+            if (drawExtraLine) {
+                pdf.setLineWidth(1);
+                pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
             }
 
-            function handleImgUp(event) {
-                const loader = document.getElementById('loader');
-                loader.style.display = 'block';
+            pdf.setFont("Helvetica", 2 * 72 / 25.4);
+            pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+            pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
+            pdf.text(fn, 15 * 72 / 25.4, 9 * 72 / 25.4);
 
-                const rdr = new FileReader();
-                rdr.onload = function(event) {
-                    upImg = new Image();
-                    upImg.onload = function() {
-                        imgXOffset = 0;
-                        imgYOffset = 0;
-                        loader.style.display = 'none';
-                        drawCnv();
-                    };
-                    upImg.src = event.target.result;
+            const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
+            pdf.text(measurements, cWPoints - 15 * 72 / 25.4, 9 * 72 / 25.4, { align: 'right' });
+
+            pdf.save(`${fn}.pdf`);
+        }
+
+        function handleImgUp(event) {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
+
+            const rdr = new FileReader();
+            rdr.onload = function(event) {
+                upImg = new Image();
+                upImg.onload = function() {
+                    imgXOffset = 0;
+                    imgYOffset = 0;
+                    loader.style.display = 'none';
+                    drawCnv();
                 };
-                rdr.readAsDataURL(event.target.files[0]);
-            }
+                upImg.src = event.target.result;
+            };
+            rdr.readAsDataURL(event.target.files[0]);
+        }
 
-            function rmvImg() {
-                upImg = null;
-                imgXOffset = 0;
-                imgYOffset = 0;
-                drawCnv();
-                const loader = document.getElementById('loader');
-                loader.style.display = 'none';
-            }
+        function rmvImg() {
+            upImg = null;
+            imgXOffset = 0;
+            imgYOffset = 0;
+            drawCnv();
+            const loader = document.getElementById('loader');
+            loader.style.display = 'none';
+        }
 
-            function shiftImage(direction, vertical = false) {
-                if (!upImg) return;
+        function shiftImage(direction, vertical = false) {
+            if (!upImg) return;
 
-                const cW = getNum('cW');
-                const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-                const shiftAmount = 3 * 72 / 25.4;
+            const cW = getNum('cW');
+            const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
+            const sW = upImg.width * scl;
+            const sH = upImg.height * scl;
+            const shiftAmount = 3 * 72 / 25.4;
 
-                if (vertical) {
-                    if (direction === 'up' && imgYOffset > -((sH - getNum('fH3')) / 2)) {
-                        imgYOffset -= shiftAmount;
-                    } else if (direction === 'down' && imgYOffset < ((sH - getNum('fH3')) / 2)) {
-                        imgYOffset += shiftAmount;
-                    }
-                } else {
-                    if (direction === 'left' && imgXOffset > -(sW - cW) / 2) {
-                        imgXOffset -= shiftAmount;
-                    } else if (direction === 'right' && imgXOffset < (sW - cW) / 2) {
-                        imgXOffset += shiftAmount;
-                    }
+            if (vertical) {
+                if (direction === 'up' && imgYOffset > -((sH - getNum('fH3')) / 2)) {
+                    imgYOffset -= shiftAmount;
+                } else if (direction === 'down' && imgYOffset < ((sH - getNum('fH3')) / 2)) {
+                    imgYOffset += shiftAmount;
                 }
-
-                drawCnv();
-            }
-
-            function updateArrowButtons(cW) {
-                if (!upImg) {
-                    document.getElementById('leftArrow').disabled = true;
-                    document.getElementById('rightArrow').disabled = true;
-                    document.getElementById('upArrow').disabled = true;
-                    document.getElementById('downArrow').disabled = true;
-                    return;
-                }
-
-                const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-
-                document.getElementById('leftArrow').disabled = imgXOffset <= -(sW - cW) / 2;
-                document.getElementById('rightArrow').disabled = imgXOffset >= (sW - cW) / 2;
-                document.getElementById('upArrow').disabled = imgYOffset <= -((sH - getNum('fH3')) / 2);
-                document.getElementById('downArrow').disabled = imgYOffset >= ((sH - getNum('fH3')) / 2);
-            }
-
-            function startMoving(direction, vertical) {
-                if (!intervalId) {
-                    intervalId = setInterval(() => shiftImage(direction, vertical), 100);
+            } else {
+                if (direction === 'left' && imgXOffset > -(sW - cW) / 2) {
+                    imgXOffset -= shiftAmount;
+                } else if (direction === 'right' && imgXOffset < (sW - cW) / 2) {
+                    imgXOffset += shiftAmount;
                 }
             }
-
-            function stopMoving() {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-
-            function startDrag(event) {
-                if (!upImg) return;
-
-                const rect = cnv.getBoundingClientRect();
-                let clientX, clientY;
-
-                if (event.type === 'mousedown') {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                } else if (event.type === 'touchstart') {
-                    clientX = event.touches[0].clientX;
-                    clientY = event.touches[0].clientY;
-                }
-
-                const cW = getNum('cW');
-                const fH3 = getNum('fH3');
-                const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-
-                const imgLeft = (cW - sW) / 2 + imgXOffset;
-                const imgTop = getNum('fH1') + getNum('fH2') + (fH3 - sH) / 2 + imgYOffset;
-                const imgRight = imgLeft + sW;
-                const imgBottom = imgTop + sH;
-
-                const touchX = (clientX - rect.left) / (rect.width / cW);
-                const touchY = (clientY - rect.top) / (rect.height / cH);
-
-                if (touchX >= imgLeft && touchX <= imgRight && touchY >= imgTop && touchY <= imgBottom) {
-                    isDragging = true;
-                    dragStartX = clientX - rect.left;
-                    dragStartY = clientY - rect.top;
-
-                    dragStartX -= imgXOffset;
-                    dragStartY -= imgYOffset;
-
-                    event.preventDefault();
-                }
-            }
-
-            function dragImage(event) {
-                if (!isDragging || !upImg) return;
-
-                const rect = cnv.getBoundingClientRect();
-                let clientX, clientY;
-
-                if (event.type === 'mousemove') {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                } else if (event.type === 'touchmove') {
-                    clientX = event.touches[0].clientX;
-                    clientY = event.touches[0].clientY;
-                }
-
-                imgXOffset = (clientX - rect.left) - dragStartX;
-                imgYOffset = (clientY - rect.top) - dragStartY;
-
-                const cW = getNum('cW');
-                const fH3 = getNum('fH3');
-                const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-
-                imgXOffset = Math.max(-(sW - cW) / 2, Math.min((sW - cW) / 2, imgXOffset));
-                imgYOffset = Math.max(-(sH - fH3) / 2, Math.min((sH - fH3) / 2, imgYOffset));
-
-                drawCnv();
-
-                event.preventDefault();
-            }
-
-            function endDrag() {
-                isDragging = false;
-            }
-
-            cnv.addEventListener('mousedown', startDrag);
-            cnv.addEventListener('mousemove', dragImage);
-            cnv.addEventListener('mouseup', endDrag);
-            cnv.addEventListener('mouseleave', endDrag);
-
-            cnv.addEventListener('touchstart', (event) => {
-                startDrag(event);
-            }, { passive: false });
-
-            cnv.addEventListener('touchmove', (event) => {
-                dragImage(event);
-            }, { passive: false });
-
-            cnv.addEventListener('touchend', endDrag);
-            cnv.addEventListener('touchcancel', endDrag);
-
-            document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
-            document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
-            document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
-            document.getElementById('downArrow').addEventListener('click', () => shiftImage('down', true));
-
-            [document.getElementById('leftArrow'), document.getElementById('rightArrow'), document.getElementById('upArrow'), document.getElementById('downArrow')].forEach(button => {
-                button.addEventListener('mousedown', () => startMoving(button.id.replace('Arrow', ''), button.id === 'upArrow' || button.id === 'downArrow'));
-                button.addEventListener('mouseup', stopMoving);
-                button.addEventListener('mouseleave', stopMoving);
-            });
-
-            document.getElementById('fn').addEventListener('input', function() {
-                fn = this.value;
-                drawCnv();
-            });
-
-            ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => {
-                document.getElementById(id).addEventListener('input', drawCnv);
-            });
-
-            document.getElementById('genBtn').addEventListener('click', genPDF);
-            document.getElementById('imgLdr').addEventListener('change', handleImgUp);
-            document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
-            document.getElementById('rmvBtn').addEventListener('click', rmvImg);
-
-            window.addEventListener('resize', drawCnv);
 
             drawCnv();
+        }
 
-            function setValues(cW, cH, fH1, fH2, fH3) {
-                document.getElementById('cW').value = cW;
-                document.getElementById('cH').value = cH;
-                document.getElementById('fH1').value = fH1;
-                document.getElementById('fH2').value = fH2;
-                document.getElementById('fH3').value = fH3;
-                drawCnv();
+        function updateArrowButtons(cW) {
+            if (!upImg) {
+                document.getElementById('leftArrow').disabled = true;
+                document.getElementById('rightArrow').disabled = true;
+                document.getElementById('upArrow').disabled = true;
+                document.getElementById('downArrow').disabled = true;
+                return;
             }
 
-            document.getElementById('ra5Btn').addEventListener('click', () => {
-                setValues(1296, 1825, 12, 44, 776);
-                drawExtraLine = false;
-                isRA7BTemplate = false;
-                drawCnv();
-            });
+            const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
+            const sW = upImg.width * scl;
+            const sH = upImg.height * scl;
 
-            document.getElementById('ra6Btn').addEventListener('click', () => {
-                setValues(1516, 2100, 12, 37, 920);
-                drawExtraLine = false;
-                isRA7BTemplate = false;
-                drawCnv();
-            });
+            document.getElementById('leftArrow').disabled = imgXOffset <= -(sW - cW) / 2;
+            document.getElementById('rightArrow').disabled = imgXOffset >= (sW - cW) / 2;
+            document.getElementById('upArrow').disabled = imgYOffset <= -((sH - getNum('fH3')) / 2);
+            document.getElementById('downArrow').disabled = imgYOffset >= ((sH - getNum('fH3')) / 2);
+        }
 
-            document.getElementById('ra7aBtn').addEventListener('click', () => {
-                setValues(1786, 1206, 12, 46.5, 1057);
-                drawExtraLine = true;
-                isRA7BTemplate = false;
-                drawCnv();
-            });
+        function startMoving(direction, vertical) {
+            if (!intervalId) {
+                intervalId = setInterval(() => shiftImage(direction, vertical), 100);
+            }
+        }
 
-            document.getElementById('ra7bBtn').addEventListener('click', () => {
-                setValues(1786, 1206, 12, 0, 0);
-                drawExtraLine = false;
-                isRA7BTemplate = true;
-                drawCnv();
-            });
+        function stopMoving() {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+
+
+        function startDrag(event) {
+            if (!upImg) return;
+            isDragging = true;
+
+            const rect = cnv.getBoundingClientRect();
+            if (event.type === 'mousedown') {
+                dragStartX = event.clientX - rect.left;
+                dragStartY = event.clientY - rect.top;
+            } else if (event.type === 'touchstart') {
+                dragStartX = event.touches[0].clientX - rect.left;
+                dragStartY = event.touches[0].clientY - rect.top;
+            }
+
+            dragStartX -= imgXOffset;
+            dragStartY -= imgYOffset;
+        }
+
+        function dragImage(event) {
+            if (!isDragging || !upImg) return;
+
+            const rect = cnv.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (event.type === 'mousemove') {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            } else if (event.type === 'touchmove') {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            }
+
+            imgXOffset = (clientX - rect.left) - dragStartX;
+            imgYOffset = (clientY - rect.top) - dragStartY;
+
+
+            const cW = getNum('cW');
+            const fH3 = getNum('fH3');
+            const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+            const sW = upImg.width * scl;
+            const sH = upImg.height * scl;
+
+            imgXOffset = Math.max(-(sW - cW) / 2, Math.min((sW - cW) / 2, imgXOffset));
+            imgYOffset = Math.max(-(sH - fH3) / 2, Math.min((sH - fH3) / 2, imgYOffset));
+
+            drawCnv();
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+
+        cnv.addEventListener('mousedown', startDrag);
+        cnv.addEventListener('mousemove', dragImage);
+        cnv.addEventListener('mouseup', endDrag);
+        cnv.addEventListener('mouseleave', endDrag);
+
+        cnv.addEventListener('touchstart', startDrag);
+        cnv.addEventListener('touchmove', dragImage);
+        cnv.addEventListener('touchend', endDrag);
+        cnv.addEventListener('touchcancel', endDrag);
+
+
+        document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
+        document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
+        document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
+        document.getElementById('downArrow').addEventListener('click', () => shiftImage('down', true));
+
+        [document.getElementById('leftArrow'), document.getElementById('rightArrow'), document.getElementById('upArrow'), document.getElementById('downArrow')].forEach(button => {
+            button.addEventListener('mousedown', () => startMoving(button.id.replace('Arrow', ''), button.id === 'upArrow' || button.id === 'downArrow'));
+            button.addEventListener('mouseup', stopMoving);
+            button.addEventListener('mouseleave', stopMoving);
         });
-    </script>
+
+        document.getElementById('fn').addEventListener('input', function() {
+            fn = this.value;
+            drawCnv();
+        });
+
+        ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => {
+            document.getElementById(id).addEventListener('input', drawCnv);
+        });
+
+        document.getElementById('genBtn').addEventListener('click', genPDF);
+        document.getElementById('imgLdr').addEventListener('change', handleImgUp);
+        document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
+        document.getElementById('rmvBtn').addEventListener('click', rmvImg);
+
+        window.addEventListener('resize', drawCnv);
+
+        drawCnv();
+
+        function setValues(cW, cH, fH1, fH2, fH3) {
+            document.getElementById('cW').value = cW;
+            document.getElementById('cH').value = cH;
+            document.getElementById('fH1').value = fH1;
+            document.getElementById('fH2').value = fH2;
+            document.getElementById('fH3').value = fH3;
+            drawCnv();
+        }
+
+        document.getElementById('ra5Btn').addEventListener('click', () => {
+            setValues(1296, 1825, 12, 44, 776);
+            drawExtraLine = false;
+            isRA7BTemplate = false;
+            drawCnv();
+        });
+
+        document.getElementById('ra6Btn').addEventListener('click', () => {
+            setValues(1516, 2100, 12, 37, 920);
+            drawExtraLine = false;
+            isRA7BTemplate = false;
+            drawCnv();
+        });
+
+        document.getElementById('ra7aBtn').addEventListener('click', () => {
+            setValues(1786, 1206, 12, 46.5, 1057);
+            drawExtraLine = true;
+            isRA7BTemplate = false;
+            drawCnv();
+        });
+
+        document.getElementById('ra7bBtn').addEventListener('click', () => {
+            setValues(1786, 1206, 12, 0, 0);
+            drawExtraLine = false;
+            isRA7BTemplate = true;
+            drawCnv();
+        });
+    });
+</script>
 </body>
 </html>
