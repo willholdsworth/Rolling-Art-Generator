@@ -389,6 +389,33 @@
                 pdf.save(`${fn}.pdf`);
             }
 
+            function exportLowResJPG() {
+                const cW = getNum('cW');
+                const cH = getNum('cH');
+                const maxDimension = 1000; 
+                const scaleFactor = Math.min(maxDimension / cW, maxDimension / cH);
+
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+
+                tempCanvas.width = cW * scaleFactor;
+                tempCanvas.height = cH * scaleFactor;
+
+                tempCtx.fillStyle = 'white';
+				tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+				tempCtx.drawImage(cnv, 0, 0, tempCanvas.width, tempCanvas.height);
+
+
+                const jpgDataURL = tempCanvas.toDataURL('image/jpeg', 0.8); 
+
+                const link = document.createElement('a');
+                link.href = jpgDataURL;
+                link.download = `${fn} - LOW RES PREVIEW.jpg`; 
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
             function handleImgUp(event) {
                 const loader = document.getElementById('loader');
                 loader.style.display = 'block';
@@ -560,7 +587,11 @@
                 document.getElementById(id).addEventListener('input', drawCnv);
             });
 
-            document.getElementById('genBtn').addEventListener('click', genPDF);
+            document.getElementById('genBtn').addEventListener('click', async () => {
+    genPDF();
+    exportLowResJPG();
+});
+
             document.getElementById('imgLdr').addEventListener('change', handleImgUp);
             document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
             document.getElementById('rmvBtn').addEventListener('click', rmvImg);
