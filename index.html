@@ -53,7 +53,7 @@
 			margin-bottom: 10px;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 10px;
             width: 100%;
             flex-wrap: wrap;
         }
@@ -66,7 +66,7 @@
         }
 
         .ra-button-container .btn {
-            font-size: clamp(9px, 1vw, 16px);
+            font-size: clamp(12px, 1vw, 16px);
             padding: clamp(6px, 2vw, 6px);
             flex-grow: 1;
             min-width: 50px;
@@ -150,7 +150,7 @@
             padding: clamp(10px, 1vw, 10px);
             flex-grow: 1;
             flex-shrink: 1;
-            min-width: 100px;
+            min-width: 120px;
             max-width: 900px;
             min-height: clamp(58px, 1vw, 58px);
             text-align: center;
@@ -169,7 +169,7 @@
 
         @media (max-width: 768px) {
             label {
-                font-size: clamp(9px, 2vw, 12px);
+                font-size: clamp(12px, 2vw, 12px);
                 margin-bottom: clamp(2px, 1vw, 4px);
             }
 
@@ -178,15 +178,16 @@
                 height: clamp(20px, 1vw, 20px);
             }
             .btn {
-                font-size: clamp(10px, 1.5vw, 14px);
+                font-size: clamp(14px, 1.5vw, 14px);
                 padding: clamp(4px, 1.5vw, 6px);
                 min-width: 100px;
+				max-width: 100%;
             }
         }
 
         @media (max-width: 480px) {
             label {
-                font-size: clamp(8px, 2vw, 10px);
+                font-size: clamp(12px, 2vw, 10px);
                 margin-bottom: clamp(1px, 1vw, 3px);
             }
 
@@ -195,9 +196,9 @@
                 height: clamp(25px, 4vw, 30px);
             }
             .btn {
-                font-size: clamp(7px, 1.2vw, 12px);
+                font-size: clamp(11px, 1.2vw, 12px);
                 padding: clamp(3px, 1.2vw, 5px);
-                min-width: 60px;
+                min-width: 80px;
             }
         }
 
@@ -216,6 +217,8 @@
             background-color: #606060;
             color: white;
             border: 2px solid #404040; 
+			min-width: 30px;
+			max-width: 100%;
         }
 		
     </style>
