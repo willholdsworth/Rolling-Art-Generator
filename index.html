@@ -39,11 +39,10 @@
 
         .button-container {
             padding: clamp(0px, 2vw, 0px);
-            height: clamp(58px, 2vw, 58px);
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             justify-content: space-between;
-            gap: 5px;
+            gap: 10px;
             margin-bottom: 10px;
             overflow: hidden;
             margin-top: -5px;
@@ -51,16 +50,17 @@
 
         .ra-button-container {
             margin-top: 20px;
+			margin-bottom: 10px;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 20px;
             width: 100%;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
         }
 
         .ra-button-container .button-container {
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             gap: 10px;
             width: 100%;
         }
@@ -74,7 +74,7 @@
             min-height: clamp(30px, 6vw, 58px);
             text-align: center;
             border: none;
-            border-radius: 4px;
+            border-radius: 40px;
             background-color: #000000;
             color: white;
             white-space: nowrap;
@@ -84,22 +84,20 @@
             font-size: clamp(9px, 2vw, 16px);
             padding: clamp(6px, 1.5vw, 10px);
             flex: 1;
-            min-width: auto;
+            min-width: 100px;
             min-height: clamp(30px, 6vw, 40px);
             text-align: center;
-            border: none;
             border-radius: 4px;
-            background-color: #000000;
+            background-color: #909090; 
+			color: white;
+			border: none;
             color: white;
             white-space: normal;
         }
+				
 
         .btn:hover, .arrow-btn:hover {
-            background-color: #505050;
-        }
-
-        .arrow-btn {
-            font-size: clamp(16px, 3vw, 24px);
+            background-color: #303030;
         }
 
         .input-container {
@@ -110,7 +108,7 @@
             width: 100%;
             padding: clamp(8px, 2vw, 12px);
             height: clamp(30px, 5vw, 30px);
-            margin-bottom: 5px; 
+            margin-bottom: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
@@ -118,7 +116,7 @@
 
         label {
             font-size: clamp(9px, 2vw, 14px);
-            margin-bottom: clamp(2px, 1vw, 4px); 
+            margin-bottom: clamp(2px, 1vw, 4px);
         }
 
         .canvas-container {
@@ -127,14 +125,14 @@
             padding: 0px;
             border: 1px solid #fff;
             background-color: #fff;
-            width: 100%; 
-            max-width: 100%; 
-            box-sizing: border-box; 
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         canvas {
-            touch-action: none; /* Disable default touch actions (e.g., scrolling, zooming) */
-            user-select: none; /* Prevent text selection while dragging */
+            touch-action: none;
+            user-select: none;
         }
 
         .loader {
@@ -147,6 +145,23 @@
             display: none;
         }
 
+        .btn {
+            font-size: clamp(9px, 3vw, 16px);
+            padding: clamp(10px, 1vw, 10px);
+            flex-grow: 1;
+            flex-shrink: 1;
+            min-width: 100px;
+            max-width: 900px;
+            min-height: clamp(58px, 1vw, 58px);
+            text-align: center;
+            border: none;
+            border-radius: 20px;
+            background-color: #000000;
+            color: white;
+            white-space: normal;
+            flex-wrap: wrap;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -155,26 +170,54 @@
         @media (max-width: 768px) {
             label {
                 font-size: clamp(9px, 2vw, 12px);
-                margin-bottom: clamp(2px, 1vw, 4px); 
+                margin-bottom: clamp(2px, 1vw, 4px);
             }
 
             input[type="number"], input[type="text"] {
                 padding: clamp(5px, 1.5vw, 10px);
                 height: clamp(20px, 1vw, 20px);
             }
+            .btn {
+                font-size: clamp(10px, 1.5vw, 14px);
+                padding: clamp(4px, 1.5vw, 6px);
+                min-width: 100px;
+            }
         }
 
         @media (max-width: 480px) {
             label {
                 font-size: clamp(8px, 2vw, 10px);
-                margin-bottom: clamp(1px, 1vw, 3px); 
+                margin-bottom: clamp(1px, 1vw, 3px);
             }
 
             input[type="number"], input[type="text"] {
-                padding: clamp(5px, 1.2vw, 8px);
+                padding: clamp(12px, 1.2vw, 12px);
                 height: clamp(25px, 4vw, 30px);
             }
+            .btn {
+                font-size: clamp(7px, 1.2vw, 12px);
+                padding: clamp(3px, 1.2vw, 5px);
+                min-width: 60px;
+            }
         }
+
+        #jpgBtn {
+            background-color: #4CAF50; 
+            color: white;
+        }
+
+        #pdfBtn {
+            background-color: #FF5733;
+            color: white;
+        }
+				
+		.arrow-btn {
+            font-size: clamp(16px, 3vw, 24px);
+            background-color: #606060;
+            color: white;
+            border: 2px solid #404040; 
+        }
+		
     </style>
 </head>
 <body>
@@ -194,21 +237,7 @@
             <label for="fn">FILE NAME:</label>
             <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
         </div>
-        <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
-        <div class="button-container">
-            <button class="btn arrow-btn" id="leftArrow">←</button>
-            <button class="btn arrow-btn" id="rightArrow">→</button>
-            <button class="btn arrow-btn" id="upArrow"> ↑ </button>
-            <button class="btn arrow-btn" id="downArrow"> ↓ </button>
-            <button class="btn" id="upBtn">Add Image</button>
-            <button class="btn" id="rmvBtn">Remove Image</button>
-            <button class="btn" id="genBtn">Generate PDF</button>
-            <div id="loader" class="loader"></div>
-        </div>
-        <div class="canvas-container">
-            <canvas id="cnv"></canvas>
-        </div>
-        <div class="ra-button-container">
+		        <div class="ra-button-container">
             <div class="button-container">
                 <button class="btn" id="ra5Btn">RA5</button>
                 <button class="btn" id="ra6Btn">RA6</button>
@@ -216,6 +245,22 @@
                 <button class="btn" id="ra7bBtn">RA7 (B)</button>
             </div>
         </div>
+        <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
+        <div class="button-container">
+            <button class="btn arrow-btn" id="leftArrow">←</button>
+            <button class="btn arrow-btn" id="rightArrow">→</button>
+    <button class="btn arrow-btn" id="upArrow"> ↑ </button>
+    <button class="btn arrow-btn" id="downArrow"> ↓ </button>
+    <button class="btn" id="upBtn">Add<br>Image</button>
+    <button class="btn" id="rmvBtn">Remove<br>Image</button>
+    <button class="btn" id="jpgBtn">Download<br>Preview 🌄</button> 
+    <button class="btn" id="pdfBtn">Generate<br>PDF 🖨️</button> 
+    <div id="loader" class="loader"></div>
+</div>
+        <div class="canvas-container">
+            <canvas id="cnv"></canvas>
+        </div>
+
     </div>
     <script>
         window.addEventListener('DOMContentLoaded', (event) => {
@@ -390,31 +435,32 @@
             }
 
             function exportLowResJPG() {
-                const cW = getNum('cW');
-                const cH = getNum('cH');
-                const maxDimension = 1000; 
-                const scaleFactor = Math.min(maxDimension / cW, maxDimension / cH);
+				const cW = getNum('cW');
+				const cH = getNum('cH');
+				const maxDimension = 1000; 
+				const scaleFactor = Math.min(maxDimension / cW, maxDimension / cH);
 
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
+				const tempCanvas = document.createElement('canvas');
+				const tempCtx = tempCanvas.getContext('2d');
 
-                tempCanvas.width = cW * scaleFactor;
-                tempCanvas.height = cH * scaleFactor;
+				tempCanvas.width = cW * scaleFactor;
+				tempCanvas.height = cH * scaleFactor;
 
-                tempCtx.fillStyle = 'white';
+				tempCtx.fillStyle = 'white';
 				tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 				tempCtx.drawImage(cnv, 0, 0, tempCanvas.width, tempCanvas.height);
 
+				const jpgDataURL = tempCanvas.toDataURL('image/jpeg', 0.8); 
 
-                const jpgDataURL = tempCanvas.toDataURL('image/jpeg', 0.8); 
+				const jpgFilename = `${fn} - LOW RES PREVIEW.jpg`;
 
-                const link = document.createElement('a');
-                link.href = jpgDataURL;
-                link.download = `${fn} - LOW RES PREVIEW.jpg`; 
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
+				const link = document.createElement('a');
+				link.href = jpgDataURL;
+				link.download = jpgFilename; 
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			}
 
             function handleImgUp(event) {
                 const loader = document.getElementById('loader');
@@ -587,10 +633,8 @@
                 document.getElementById(id).addEventListener('input', drawCnv);
             });
 
-            document.getElementById('genBtn').addEventListener('click', async () => {
-    genPDF();
-    exportLowResJPG();
-});
+			document.getElementById('jpgBtn').addEventListener('click', exportLowResJPG);
+			document.getElementById('pdfBtn').addEventListener('click', genPDF);
 
             document.getElementById('imgLdr').addEventListener('change', handleImgUp);
             document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
