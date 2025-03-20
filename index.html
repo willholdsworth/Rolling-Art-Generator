@@ -429,7 +429,7 @@
                 pdf.setFont("Helvetica", 2 * 72 / 25.4); 
 					pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
 					pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
-					pdf.text(fn, 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4); // File name 5mm below zip weld area
+					pdf.text(fn, 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4); 
 
 					const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
 					pdf.text(measurements, cWPoints - 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4, { align: 'right' });
