@@ -432,7 +432,7 @@
 					pdf.text(fn, 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4); // File name 5mm below zip weld area
 
 					const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
-					pdf.text(measurements, cWPoints - 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4, { align: 'right' }); // Measurements 5mm below zip weld area
+					pdf.text(measurements, cWPoints - 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4, { align: 'right' });
 
 					pdf.save(`${fn}.pdf`);
 				}
