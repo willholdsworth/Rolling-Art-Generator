@@ -304,7 +304,7 @@
                     drawImgPreview(upImg, cW, fH1 + fH2, fH3);
                 }
                 drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
-                drawTxt(cW, cH);
+                drawTxt(cW, cH, fH1);
 
                 if (drawExtraLine) {
                     ctx.beginPath();
@@ -363,34 +363,34 @@
                 ctx.stroke();
             }
 
-            function drawTxt(cW, cH) {
-                ctx.font = '2mm Arial';
+            function drawTxt(cW, cH, fH1) {
+                ctx.font = '2.5mm Arial';
                 ctx.fillStyle = 'black';
                 ctx.textAlign = 'center';
                 ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
-                ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 2);
+                ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
                 ctx.textAlign = 'left';
-                ctx.fillText(fn, 15, 9);
+                ctx.fillText(fn, 15, fH1 + 15);
             }
 
-            function genPDF() {
-                const cW = getNum('cW');
-                const cH = getNum('cH');
-                const fH1 = getNum('fH1');
-                const fH2 = getNum('fH2');
-                const fH3 = getNum('fH3');
-                fn = document.getElementById('fn').value || 'default_filename';
-                const aFH2 = fH1 + fH2;
-                const aH = fH1 + fH2 + fH3;
+				 function genPDF() {
+					const cW = getNum('cW');
+					const cH = getNum('cH');
+					const fH1 = getNum('fH1');
+					const fH2 = getNum('fH2');
+					const fH3 = getNum('fH3');
+					fn = document.getElementById('fn').value || 'default_filename';
+					const aFH2 = fH1 + fH2;
+					const aH = fH1 + fH2 + fH3;
 
-                const cWPoints = cW * 72 / 25.4;
-                const cHPoints = cH * 72 / 25.4;
+					const cWPoints = cW * 72 / 25.4;
+					const cHPoints = cH * 72 / 25.4;
 
-                const pdf = new jsPDF({
-                    orientation: cW > cH ? 'landscape' : 'portrait',
-                    unit: 'pt',
-                    format: [cWPoints, cHPoints]
-                });
+					const pdf = new jsPDF({
+						orientation: cW > cH ? 'landscape' : 'portrait',
+						unit: 'pt',
+						format: [cWPoints, cHPoints]
+					});
 
                 if (!isRA7BTemplate && upImg) {
                     const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
@@ -426,16 +426,16 @@
                     pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
                 }
 
-                pdf.setFont("Helvetica", 2 * 72 / 25.4);
-                pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
-                pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
-                pdf.text(fn, 15 * 72 / 25.4, 9 * 72 / 25.4);
+                pdf.setFont("Helvetica", 2 * 72 / 25.4); 
+					pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+					pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
+					pdf.text(fn, 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4); // File name 5mm below zip weld area
 
-                const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
-                pdf.text(measurements, cWPoints - 15 * 72 / 25.4, 9 * 72 / 25.4, { align: 'right' });
+					const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
+					pdf.text(measurements, cWPoints - 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4, { align: 'right' }); // Measurements 5mm below zip weld area
 
-                pdf.save(`${fn}.pdf`);
-            }
+					pdf.save(`${fn}.pdf`);
+				}
 
             function exportLowResJPG() {
 				const cW = getNum('cW');
@@ -574,6 +574,7 @@
                 if (event.type === 'mousemove') {
                     clientX = event.clientX;
                     clientY = event.clientY;
+                } else if (event.type === 'touchmove') {
                 } else if (event.type === 'touchmove') {
                     clientX = event.touches[0].clientX;
                     clientY = event.touches[0].clientY;
