@@ -221,7 +221,7 @@
 			max-width: 100%;
         }
 		
-    </style>
+        </style>
 </head>
 <body>
     <div class="container">
@@ -240,7 +240,7 @@
             <label for="fn">FILE NAME:</label>
             <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
         </div>
-		        <div class="ra-button-container">
+        <div class="ra-button-container">
             <div class="button-container">
                 <button class="btn" id="ra5Btn">RA5</button>
                 <button class="btn" id="ra6Btn">RA6</button>
@@ -252,18 +252,17 @@
         <div class="button-container">
             <button class="btn arrow-btn" id="leftArrow">←</button>
             <button class="btn arrow-btn" id="rightArrow">→</button>
-    <button class="btn arrow-btn" id="upArrow"> ↑ </button>
-    <button class="btn arrow-btn" id="downArrow"> ↓ </button>
-    <button class="btn" id="upBtn">Add<br>Image</button>
-    <button class="btn" id="rmvBtn">Remove<br>Image</button>
-    <button class="btn" id="jpgBtn">Download<br>Preview 🌄</button> 
-    <button class="btn" id="pdfBtn">Generate<br>PDF 🖨️</button> 
-    <div id="loader" class="loader"></div>
-</div>
+            <button class="btn arrow-btn" id="upArrow"> ↑ </button>
+            <button class="btn arrow-btn" id="downArrow"> ↓ </button>
+            <button class="btn" id="upBtn">Add<br>Image</button>
+            <button class="btn" id="rmvBtn">Remove<br>Image</button>
+            <button class="btn" id="jpgBtn">Download<br>Preview 🌄</button> 
+            <button class="btn" id="pdfBtn">Generate<br>PDF 🖨️</button> 
+            <div id="loader" class="loader"></div>
+        </div>
         <div class="canvas-container">
             <canvas id="cnv"></canvas>
         </div>
-
     </div>
     <script>
         window.addEventListener('DOMContentLoaded', (event) => {
@@ -304,7 +303,7 @@
                     drawImgPreview(upImg, cW, fH1 + fH2, fH3);
                 }
                 drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
-                drawTxt(cW, cH, fH1);
+                drawTxt(cW, cH);
 
                 if (drawExtraLine) {
                     ctx.beginPath();
@@ -363,34 +362,34 @@
                 ctx.stroke();
             }
 
-            function drawTxt(cW, cH, fH1) {
-                ctx.font = '2.5mm Arial';
+            function drawTxt(cW, cH) {
+                ctx.font = '2mm Arial';
                 ctx.fillStyle = 'black';
                 ctx.textAlign = 'center';
                 ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
-                ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
+                ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 2);
                 ctx.textAlign = 'left';
-                ctx.fillText(fn, 15, fH1 + 15);
+                ctx.fillText(fn, 15, 9);
             }
 
-				 function genPDF() {
-					const cW = getNum('cW');
-					const cH = getNum('cH');
-					const fH1 = getNum('fH1');
-					const fH2 = getNum('fH2');
-					const fH3 = getNum('fH3');
-					fn = document.getElementById('fn').value || 'default_filename';
-					const aFH2 = fH1 + fH2;
-					const aH = fH1 + fH2 + fH3;
+            function genPDF() {
+                const cW = getNum('cW');
+                const cH = getNum('cH');
+                const fH1 = getNum('fH1');
+                const fH2 = getNum('fH2');
+                const fH3 = getNum('fH3');
+                fn = document.getElementById('fn').value || 'default_filename';
+                const aFH2 = fH1 + fH2;
+                const aH = fH1 + fH2 + fH3;
 
-					const cWPoints = cW * 72 / 25.4;
-					const cHPoints = cH * 72 / 25.4;
+                const cWPoints = cW * 72 / 25.4;
+                const cHPoints = cH * 72 / 25.4;
 
-					const pdf = new jsPDF({
-						orientation: cW > cH ? 'landscape' : 'portrait',
-						unit: 'pt',
-						format: [cWPoints, cHPoints]
-					});
+                const pdf = new jsPDF({
+                    orientation: cW > cH ? 'landscape' : 'portrait',
+                    unit: 'pt',
+                    format: [cWPoints, cHPoints]
+                });
 
                 if (!isRA7BTemplate && upImg) {
                     const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
@@ -399,192 +398,191 @@
                     const imgX = (cWPoints - sW * 72 / 25.4) / 2 + imgXOffset * 72 / 25.4;
                     const imgY = (aFH2 + fH3 / 2) * 72 / 25.4 - (sH * 72 / 25.4) / 2 + imgYOffset * 72 / 25.4;
 
-                    let canvas = document.createElement('canvas');
-                    canvas.width = upImg.width;
-                    canvas.height = upImg.height;
-                    let ctx = canvas.getContext('2d');
-                    ctx.drawImage(upImg, 0, 0, canvas.width, canvas.height);
-                    let imgData = canvas.toDataURL('image/jpeg', 1.0);
+                let canvas = document.createElement('canvas');
+                canvas.width = upImg.width;
+                canvas.height = upImg.height;
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(upImg, 0, 0, canvas.width, canvas.height);
+                let imgData = canvas.toDataURL('image/jpeg', 1.0);
 
-                    pdf.addImage(imgData, 'JPEG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
-                }
+                pdf.addImage(imgData, 'JPEG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
+            }
 
-                pdf.setFillColor(255, 255, 255);
-                pdf.rect(0, 0, cWPoints, (fH1 + fH2) * 72 / 25.4, 'F');
-                pdf.rect(0, aH * 72 / 25.4, cWPoints, (cH - aH) * 72 / 25.4, 'F');
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, cWPoints, (fH1 + fH2) * 72 / 25.4, 'F');
+            pdf.rect(0, aH * 72 / 25.4, cWPoints, (cH - aH) * 72 / 25.4, 'F');
 
-                pdf.setLineWidth(0.1 * 72 / 25.4);
-                pdf.rect(0, 0, cWPoints, cHPoints);
-                pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHPoints);
-                pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHPoints);
-                pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
-                pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
-                pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
+            pdf.setLineWidth(0.1 * 72 / 25.4);
+            pdf.rect(0, 0, cWPoints, cHPoints);
+            pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHPoints);
+            pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHPoints);
+            pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
+            pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
+            pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
 
-                if (drawExtraLine) {
-                    pdf.setLineWidth(1);
-                    pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
-                }
+            if (drawExtraLine) {
+                pdf.setLineWidth(1);
+                pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
+            }
 
-                pdf.setFont("Helvetica", 2 * 72 / 25.4); 
-					pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
-					pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
-					pdf.text(fn, 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4); 
+            pdf.setFont("Helvetica", 2 * 72 / 25.4);
+            pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+            pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 2) * 72 / 25.4, { align: 'center' });
+            pdf.text(fn, 15 * 72 / 25.4, 9 * 72 / 25.4);
 
-					const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
-					pdf.text(measurements, cWPoints - 15 * 72 / 25.4, (fH1 + 10) * 72 / 25.4, { align: 'right' });
+            const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
+            pdf.text(measurements, cWPoints - 15 * 72 / 25.4, 9 * 72 / 25.4, { align: 'right' });
 
-					pdf.save(`${fn}.pdf`);
-				}
+            pdf.save(`${fn}.pdf`);
+        }
 
-            function exportLowResJPG() {
-				const cW = getNum('cW');
-				const cH = getNum('cH');
-				const maxDimension = 1000; 
-				const scaleFactor = Math.min(maxDimension / cW, maxDimension / cH);
+        function exportLowResJPG() {
+            const cW = getNum('cW');
+            const cH = getNum('cH');
+            const maxDimension = 1000; 
+            const scaleFactor = Math.min(maxDimension / cW, maxDimension / cH);
 
-				const tempCanvas = document.createElement('canvas');
-				const tempCtx = tempCanvas.getContext('2d');
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
 
-				tempCanvas.width = cW * scaleFactor;
-				tempCanvas.height = cH * scaleFactor;
+            tempCanvas.width = cW * scaleFactor;
+            tempCanvas.height = cH * scaleFactor;
 
-				tempCtx.fillStyle = 'white';
-				tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-				tempCtx.drawImage(cnv, 0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(cnv, 0, 0, tempCanvas.width, tempCanvas.height);
 
-				const jpgDataURL = tempCanvas.toDataURL('image/jpeg', 0.8); 
+            const jpgDataURL = tempCanvas.toDataURL('image/jpeg', 0.8); 
 
-				const jpgFilename = `${fn} - LOW RES PREVIEW.jpg`;
+            const jpgFilename = `${fn} - LOW RES PREVIEW.jpg`;
 
-				const link = document.createElement('a');
-				link.href = jpgDataURL;
-				link.download = jpgFilename; 
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-			}
+            const link = document.createElement('a');
+            link.href = jpgDataURL;
+            link.download = jpgFilename; 
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
-            function handleImgUp(event) {
-                const loader = document.getElementById('loader');
-                loader.style.display = 'block';
+        function handleImgUp(event) {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
 
-                const rdr = new FileReader();
-                rdr.onload = function(event) {
-                    upImg = new Image();
-                    upImg.onload = function() {
-                        imgXOffset = 0;
-                        imgYOffset = 0;
-                        loader.style.display = 'none';
-                        drawCnv();
-                    };
-                    upImg.src = event.target.result;
+            const rdr = new FileReader();
+            rdr.onload = function(event) {
+                upImg = new Image();
+                upImg.onload = function() {
+                    imgXOffset = 0;
+                    imgYOffset = 0;
+                    loader.style.display = 'none';
+                    drawCnv();
                 };
-                rdr.readAsDataURL(event.target.files[0]);
-            }
+                upImg.src = event.target.result;
+            };
+            rdr.readAsDataURL(event.target.files[0]);
+        }
 
-            function rmvImg() {
-                upImg = null;
-                imgXOffset = 0;
-                imgYOffset = 0;
-                drawCnv();
-                const loader = document.getElementById('loader');
-                loader.style.display = 'none';
-            }
+        function rmvImg() {
+            upImg = null;
+            imgXOffset = 0;
+            imgYOffset = 0;
+            drawCnv();
+            const loader = document.getElementById('loader');
+            loader.style.display = 'none';
+        }
 
-            function shiftImage(direction, vertical = false) {
-                if (!upImg) return;
+        function shiftImage(direction, vertical = false) {
+            if (!upImg) return;
 
-                const cW = getNum('cW');
-                const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-                const shiftAmount = 3 * 72 / 25.4;
+            const cW = getNum('cW');
+            const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
+            const sW = upImg.width * scl;
+            const sH = upImg.height * scl;
+            const shiftAmount = 3 * 72 / 25.4;
 
-                if (vertical) {
-                    if (direction === 'up' && imgYOffset > -((sH - getNum('fH3')) / 2)) {
-                        imgYOffset -= shiftAmount;
-                    } else if (direction === 'down' && imgYOffset < ((sH - getNum('fH3')) / 2)) {
-                        imgYOffset += shiftAmount;
-                    }
-                } else {
-                    if (direction === 'left' && imgXOffset > -(sW - cW) / 2) {
-                        imgXOffset -= shiftAmount;
-                    } else if (direction === 'right' && imgXOffset < (sW - cW) / 2) {
-                        imgXOffset += shiftAmount;
-                    }
+            if (vertical) {
+                if (direction === 'up' && imgYOffset > -((sH - getNum('fH3')) / 2)) {
+                    imgYOffset -= shiftAmount;
+                } else if (direction === 'down' && imgYOffset < ((sH - getNum('fH3')) / 2)) {
+                    imgYOffset += shiftAmount;
                 }
-
-                drawCnv();
-            }
-
-            function updateArrowButtons(cW) {
-                if (!upImg) {
-                    document.getElementById('leftArrow').disabled = true;
-                    document.getElementById('rightArrow').disabled = true;
-                    document.getElementById('upArrow').disabled = true;
-                    document.getElementById('downArrow').disabled = true;
-                    return;
-                }
-
-                const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-
-                document.getElementById('leftArrow').disabled = imgXOffset <= -(sW - cW) / 2;
-                document.getElementById('rightArrow').disabled = imgXOffset >= (sW - cW) / 2;
-                document.getElementById('upArrow').disabled = imgYOffset <= -((sH - getNum('fH3')) / 2);
-                document.getElementById('downArrow').disabled = imgYOffset >= ((sH - getNum('fH3')) / 2);
-            }
-
-            function startMoving(direction, vertical) {
-                if (!intervalId) {
-                    intervalId = setInterval(() => shiftImage(direction, vertical), 100);
+            } else {
+                if (direction === 'left' && imgXOffset > -(sW - cW) / 2) {
+                    imgXOffset -= shiftAmount;
+                } else if (direction === 'right' && imgXOffset < (sW - cW) / 2) {
+                    imgXOffset += shiftAmount;
                 }
             }
 
-            function stopMoving() {
-                clearInterval(intervalId);
-                intervalId = null;
+            drawCnv();
+        }
+
+        function updateArrowButtons(cW) {
+            if (!upImg) {
+                document.getElementById('leftArrow').disabled = true;
+                document.getElementById('rightArrow').disabled = true;
+                document.getElementById('upArrow').disabled = true;
+                document.getElementById('downArrow').disabled = true;
+                return;
             }
 
-            function startDrag(event) {
-                if (!upImg) return;
-                isDragging = true;
+            const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
+            const sW = upImg.width * scl;
+            const sH = upImg.height * scl;
 
-                const rect = cnv.getBoundingClientRect();
-                if (event.type === 'mousedown') {
-                    dragStartX = event.clientX - rect.left;
-                    dragStartY = event.clientY - rect.top;
-                } else if (event.type === 'touchstart') {
-                    dragStartX = event.touches[0].clientX - rect.left;
-                    dragStartY = event.touches[0].clientY - rect.top;
-                }
+            document.getElementById('leftArrow').disabled = imgXOffset <= -(sW - cW) / 2;
+            document.getElementById('rightArrow').disabled = imgXOffset >= (sW - cW) / 2;
+            document.getElementById('upArrow').disabled = imgYOffset <= -((sH - getNum('fH3')) / 2);
+            document.getElementById('downArrow').disabled = imgYOffset >= ((sH - getNum('fH3')) / 2);
+        }
 
-                dragStartX -= imgXOffset;
-                dragStartY -= imgYOffset;
+        function startMoving(direction, vertical) {
+            if (!intervalId) {
+                intervalId = setInterval(() => shiftImage(direction, vertical), 100);
+            }
+        }
+
+        function stopMoving() {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+
+        function startDrag(event) {
+            if (!upImg) return;
+            isDragging = true;
+
+            const rect = cnv.getBoundingClientRect();
+            if (event.type === 'mousedown') {
+                dragStartX = event.clientX - rect.left;
+                dragStartY = event.clientY - rect.top;
+            } else if (event.type === 'touchstart') {
+                dragStartX = event.touches[0].clientX - rect.left;
+                dragStartY = event.touches[0].clientY - rect.top;
             }
 
-            function dragImage(event) {
-                if (!isDragging || !upImg) return;
+            dragStartX -= imgXOffset;
+            dragStartY -= imgYOffset;
+        }
 
-                const rect = cnv.getBoundingClientRect();
-                let clientX, clientY;
+        function dragImage(event) {
+            if (!isDragging || !upImg) return;
 
-                if (event.type === 'mousemove') {
-                    clientX = event.clientX;
-                    clientY = event.clientY;
-                } else if (event.type === 'touchmove') {
-                } else if (event.type === 'touchmove') {
-                    clientX = event.touches[0].clientX;
-                    clientY = event.touches[0].clientY;
-                }
+            const rect = cnv.getBoundingClientRect();
+            let clientX, clientY;
 
-                imgXOffset = (clientX - rect.left) - dragStartX;
-                imgYOffset = (clientY - rect.top) - dragStartY;
+            if (event.type === 'mousemove') {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            } else if (event.type === 'touchmove') {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            }
 
-                const cW = getNum('cW');
-                const fH3 = getNum('fH3');
+            imgXOffset = (clientX - rect.left) - dragStartX;
+            imgYOffset = (clientY - rect.top) - dragStartY;
+
+            const cW = getNum('cW');
+            const fH3 = getNum('fH3');
                 const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
                 const sW = upImg.width * scl;
                 const sH = upImg.height * scl;
@@ -637,8 +635,8 @@
                 document.getElementById(id).addEventListener('input', drawCnv);
             });
 
-			document.getElementById('jpgBtn').addEventListener('click', exportLowResJPG);
-			document.getElementById('pdfBtn').addEventListener('click', genPDF);
+            document.getElementById('jpgBtn').addEventListener('click', exportLowResJPG);
+            document.getElementById('pdfBtn').addEventListener('click', genPDF);
 
             document.getElementById('imgLdr').addEventListener('change', handleImgUp);
             document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
