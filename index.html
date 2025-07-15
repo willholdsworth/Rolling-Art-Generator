@@ -6,102 +6,50 @@
     <title>Rolling Artwork Canvas Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.7/canvg.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #f0f0f0;
+        * {
+            box-sizing: border-box;
         }
 
-        .title {
-            font-size: clamp(15px, 2vw, 24px);
-            text-align: left;
-            margin-bottom: 10px;
-            margin-top: -5px;
-            width: 100%;
-            max-width: 100%;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #ffffff;
+            color: #000000;
+            line-height: 1.5;
         }
 
         .container {
-            width: 90%;
-            max-width: 1000px;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .button-container {
-            padding: clamp(0px, 2vw, 0px);
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
-            overflow: hidden;
-            margin-top: -5px;
-        }
-
-        .ra-button-container {
-            margin-top: 20px;
-			margin-bottom: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            flex-wrap: wrap;
-        }
-
-        .ra-button-container .button-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            background: #ffffff;
+            border: 0px solid #000000;
+            border-radius: 0;
+            padding: 5px 30px 30px 30px;
             width: 100%;
         }
 
-        .ra-button-container .btn {
-            font-size: clamp(12px, 1vw, 16px);
-            padding: clamp(6px, 2vw, 6px);
-            flex-grow: 1;
-            min-width: 50px;
-            max-width: 250px;
-            min-height: clamp(30px, 6vw, 58px);
+        h1 {
+            color: #000000;
             text-align: center;
-            border: none;
-            border-radius: 10px;
-            background-color: #000000;
-            color: white;
-            white-space: nowrap;
+            margin: 0 0 10px 0;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: bold;
+            padding-bottom: 15px;
         }
 
-        .btn, .arrow-btn {
-            font-size: clamp(9px, 2vw, 16px);
-            padding: clamp(6px, 1.5vw, 10px);
-            flex: 1;
-            min-width: 100px;
-            min-height: clamp(30px, 6vw, 40px);
-            text-align: center;
-            border-radius: 4px;
-            background-color: #909090; 
-			color: white;
-			border: none;
-            color: white;
-            white-space: normal;
-        }
-				
-
-        .btn:hover, .arrow-btn:hover {
-            background-color: #303030;
+        .input-section {
+            margin-bottom: 30px;
+            width: 100%;
         }
 
-        .input-container {
-            margin-bottom: 20px;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #000000;
+            font-size: 1rem;
         }
 
         input[type="number"], input[type="text"] {
@@ -109,14 +57,89 @@
             padding: clamp(8px, 2vw, 12px);
             height: clamp(30px, 5vw, 30px);
             margin-bottom: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #000000;
             border-radius: 4px;
             box-sizing: border-box;
+            font-size: 14px;
+            background: #ffffff;
+            color: #000000;
         }
 
-        label {
-            font-size: clamp(9px, 2vw, 14px);
-            margin-bottom: clamp(2px, 1vw, 4px);
+        input[type="number"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: inset 0 0 0 2px #000000;
+        }
+
+        .button-group {
+            padding: clamp(0px, 2vw, 0px);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        button {
+            font-size: clamp(9px, 2vw, 16px);
+            padding: clamp(6px, 1.5vw, 10px);
+            flex: 1;
+            min-width: 100px;
+            min-height: clamp(30px, 6vw, 40px);
+            text-align: center;
+            border: 2px solid #000000;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #ffffff;
+            color: #000000;
+            transition: all 0.2s ease;
+            white-space: normal;
+        }
+
+        .secondary-btn {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .secondary-btn:hover:not(:disabled) {
+            background: #303030;
+            color: #ffffff;
+        }
+
+        .arrow-btn {
+            background: #606060;
+            color: #ffffff;
+            font-size: clamp(16px, 3vw, 24px);
+            min-width: 30px;
+        }
+
+        .arrow-btn:hover:not(:disabled) {
+            background: #303030;
+        }
+
+        .arrow-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .green-btn {
+            background: #4CAF50;
+            color: #ffffff;
+        }
+
+        .green-btn:hover:not(:disabled) {
+            background: #303030;
+        }
+
+        .red-btn {
+            background: #FF5733;
+            color: #ffffff;
+        }
+
+        .red-btn:hover:not(:disabled) {
+            background: #303030;
         }
 
         .canvas-container {
@@ -143,31 +166,29 @@
             height: 1rem;
             animation: spin 2s linear infinite;
             display: none;
-        }
-
-        .btn {
-            font-size: clamp(9px, 3vw, 16px);
-            padding: clamp(10px, 1vw, 10px);
-            flex-grow: 1;
-            flex-shrink: 1;
-            min-width: 120px;
-            max-width: 900px;
-            min-height: clamp(58px, 1vw, 58px);
-            text-align: center;
-            border: none;
-            border-radius: 40px;
-            background-color: #000000;
-            color: white;
-            white-space: normal;
-            flex-wrap: wrap;
+            margin: 0 auto;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+		
+		@media (max-width: 1200px) and (min-width: 600px) {
+			button {
+				border-radius: 20px;
+			}
+		}
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
             label {
                 font-size: clamp(12px, 2vw, 12px);
                 margin-bottom: clamp(2px, 1vw, 4px);
@@ -177,15 +198,20 @@
                 padding: clamp(5px, 1.5vw, 10px);
                 height: clamp(20px, 1vw, 20px);
             }
-            .btn {
+            
+            button {
                 font-size: clamp(14px, 1.5vw, 14px);
                 padding: clamp(4px, 1.5vw, 6px);
                 min-width: 100px;
-				max-width: 100%;
+                max-width: 100%;
             }
         }
 
         @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
             label {
                 font-size: clamp(12px, 2vw, 10px);
                 margin-bottom: clamp(1px, 1vw, 3px);
@@ -195,76 +221,66 @@
                 padding: clamp(12px, 1.2vw, 12px);
                 height: clamp(25px, 4vw, 30px);
             }
-            .btn {
+            
+            button {
                 font-size: clamp(11px, 1.2vw, 12px);
                 padding: clamp(5px, 1vw, 15px);
                 min-width: 80px;
             }
         }
-
-        #jpgBtn {
-            background-color: #4CAF50; 
-            color: white;
-        }
-
-        #pdfBtn {
-            background-color: #FF5733;
-            color: white;
-        }
-				
-		.arrow-btn {
-            font-size: clamp(16px, 3vw, 24px);
-            background-color: #606060;
-            color: white;
-            border: 2px solid #404040; 
-			min-width: 30px;
-			max-width: 100%;
-        }
-		
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">ROLLING ARTWORK CANVAS GENERATOR™</h1>
-        <div class="input-container">
+        <h1>ROLLING ARTWORK CANVAS GENERATOR™</h1>
+        
+        <div class="input-section">
             <label for="cW">CANVAS WIDTH (mm):</label>
             <input type="number" id="cW" placeholder="Enter width" value="1296">
+            
             <label for="cH">CANVAS HEIGHT (mm):</label>
             <input type="number" id="cH" placeholder="Enter height" value="1825">
+            
             <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
             <input type="number" id="fH1" placeholder="Enter height" value="12" step="0.1">
+            
             <label for="fH2">GAP BELOW ZIP (DEFAULT 44mm):</label>
             <input type="number" id="fH2" placeholder="Enter height" value="44" step="0.1">
+            
             <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
             <input type="number" id="fH3" placeholder="Enter height" value="776" step="0.1">
+            
             <label for="fn">FILE NAME:</label>
             <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
         </div>
-		        <div class="ra-button-container">
-            <div class="button-container">
-                <button class="btn" id="ra5Btn">RA5</button>
-                <button class="btn" id="ra6Btn">RA6</button>
-                <button class="btn" id="ra7aBtn">RA7 (A)</button>
-                <button class="btn" id="ra7bBtn">RA7 (B)</button>
-            </div>
+
+        <div class="button-group">
+            <button class="secondary-btn" id="ra5Btn">RA5</button>
+            <button class="secondary-btn" id="ra6Btn">RA6</button>
+            <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
+            <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
         </div>
+
         <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
-        <div class="button-container">
-            <button class="btn arrow-btn" id="leftArrow">←</button>
-            <button class="btn arrow-btn" id="rightArrow">→</button>
-    <button class="btn arrow-btn" id="upArrow"> ↑ </button>
-    <button class="btn arrow-btn" id="downArrow"> ↓ </button>
-    <button class="btn" id="upBtn">Add<br>Image</button>
-    <button class="btn" id="rmvBtn">Remove<br>Image</button>
-    <button class="btn" id="jpgBtn">Download<br>Preview 🌄</button> 
-    <button class="btn" id="pdfBtn">Generate<br>PDF 🖨️</button> 
-    <div id="loader" class="loader"></div>
-</div>
+        
+        <div class="button-group">
+            <button class="arrow-btn" id="leftArrow">←</button>
+            <button class="arrow-btn" id="rightArrow">→</button>
+            <button class="arrow-btn" id="upArrow">↑</button>
+            <button class="arrow-btn" id="downArrow">↓</button>
+            <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
+            <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
+            <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button> 
+            <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button> 
+        </div>
+
+        <div id="loader" class="loader"></div>
+
         <div class="canvas-container">
             <canvas id="cnv"></canvas>
         </div>
-
     </div>
+
     <script>
         window.addEventListener('DOMContentLoaded', (event) => {
             const cnv = document.getElementById('cnv');
