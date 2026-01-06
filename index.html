@@ -454,32 +454,131 @@
 			}
 
             function exportLowResJPG() {
-				const cW = getNum('cW');
-				const cH = getNum('cH');
-				const maxDimension = 1000; 
-				const scaleFactor = Math.min(maxDimension / cW, maxDimension / cH);
-
-				const tempCanvas = document.createElement('canvas');
-				const tempCtx = tempCanvas.getContext('2d');
-
-				tempCanvas.width = cW * scaleFactor;
-				tempCanvas.height = cH * scaleFactor;
-
-				tempCtx.fillStyle = 'white';
-				tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-				tempCtx.drawImage(cnv, 0, 0, tempCanvas.width, tempCanvas.height);
-
-				const jpgDataURL = tempCanvas.toDataURL('image/jpeg', 0.8); 
-
-				const jpgFilename = `${fn} - LOW RES PREVIEW.jpg`;
-
-				const link = document.createElement('a');
-				link.href = jpgDataURL;
-				link.download = jpgFilename; 
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-			}
+                const cW = getNum('cW');
+                const fH1 = getNum('fH1');
+                const fH2 = getNum('fH2');
+                const fH3 = getNum('fH3');
+                
+                const guideOffset = 5;
+                const artworkWidth = cW - (2 * guideOffset);
+                const artworkHeight = fH3;
+                
+                const margin = 80;
+                const topMargin = 120;
+                const bottomMargin = 100;
+                const cropMarkLength = 20;
+                const cropMarkOffset = 10;
+                
+                const maxArtworkDimension = 800;
+                const artworkScaleFactor = Math.min(maxArtworkDimension / artworkWidth, maxArtworkDimension / artworkHeight);
+                
+                const scaledArtworkWidth = artworkWidth * artworkScaleFactor;
+                const scaledArtworkHeight = artworkHeight * artworkScaleFactor;
+                
+                const proofCanvas = document.createElement('canvas');
+                const proofCtx = proofCanvas.getContext('2d');
+                
+                proofCanvas.width = scaledArtworkWidth + (margin * 2);
+                proofCanvas.height = scaledArtworkHeight + topMargin + bottomMargin;
+                
+                proofCtx.fillStyle = 'white';
+                proofCtx.fillRect(0, 0, proofCanvas.width, proofCanvas.height);
+                
+                const artworkX = margin;
+                const artworkY = topMargin;
+                
+                proofCtx.fillStyle = 'grey';
+                proofCtx.fillRect(artworkX, artworkY, scaledArtworkWidth, scaledArtworkHeight);
+                
+                if (upImg) {
+                    const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+                    const sW = upImg.width * scl;
+                    const sH = upImg.height * scl;
+                    
+                    const imgX = artworkX + ((artworkWidth - sW) / 2 + imgXOffset) * artworkScaleFactor;
+                    const imgY = artworkY + ((fH3 - sH) / 2 + imgYOffset) * artworkScaleFactor;
+                    
+                    proofCtx.save();
+                    proofCtx.beginPath();
+                    proofCtx.rect(artworkX, artworkY, scaledArtworkWidth, scaledArtworkHeight);
+                    proofCtx.clip();
+                    proofCtx.drawImage(upImg, imgX, imgY, sW * artworkScaleFactor, sH * artworkScaleFactor);
+                    proofCtx.restore();
+                }
+                
+                proofCtx.strokeStyle = 'black';
+                proofCtx.lineWidth = 2;
+                
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX - cropMarkOffset, artworkY);
+                proofCtx.lineTo(artworkX - cropMarkOffset - cropMarkLength, artworkY);
+                proofCtx.stroke();
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX, artworkY - cropMarkOffset);
+                proofCtx.lineTo(artworkX, artworkY - cropMarkOffset - cropMarkLength);
+                proofCtx.stroke();
+                
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX + scaledArtworkWidth + cropMarkOffset, artworkY);
+                proofCtx.lineTo(artworkX + scaledArtworkWidth + cropMarkOffset + cropMarkLength, artworkY);
+                proofCtx.stroke();
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX + scaledArtworkWidth, artworkY - cropMarkOffset);
+                proofCtx.lineTo(artworkX + scaledArtworkWidth, artworkY - cropMarkOffset - cropMarkLength);
+                proofCtx.stroke();
+                
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX - cropMarkOffset, artworkY + scaledArtworkHeight);
+                proofCtx.lineTo(artworkX - cropMarkOffset - cropMarkLength, artworkY + scaledArtworkHeight);
+                proofCtx.stroke();
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX, artworkY + scaledArtworkHeight + cropMarkOffset);
+                proofCtx.lineTo(artworkX, artworkY + scaledArtworkHeight + cropMarkOffset + cropMarkLength);
+                proofCtx.stroke();
+                
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX + scaledArtworkWidth + cropMarkOffset, artworkY + scaledArtworkHeight);
+                proofCtx.lineTo(artworkX + scaledArtworkWidth + cropMarkOffset + cropMarkLength, artworkY + scaledArtworkHeight);
+                proofCtx.stroke();
+                proofCtx.beginPath();
+                proofCtx.moveTo(artworkX + scaledArtworkWidth, artworkY + scaledArtworkHeight + cropMarkOffset);
+                proofCtx.lineTo(artworkX + scaledArtworkWidth, artworkY + scaledArtworkHeight + cropMarkOffset + cropMarkLength);
+                proofCtx.stroke();
+                
+                proofCtx.fillStyle = 'black';
+                proofCtx.font = 'bold 24px "Open Sans", Arial, sans-serif';
+                proofCtx.textAlign = 'center';
+                const proofHeading = fn ? `${fn} - ARTWORK PROOF` : 'ARTWORK PROOF';
+                proofCtx.fillText(proofHeading, proofCanvas.width / 2, 40);
+                
+                proofCtx.save();
+                proofCtx.translate(artworkX - 40, artworkY + scaledArtworkHeight / 2);
+                proofCtx.rotate(-Math.PI / 2);
+                proofCtx.font = '16px "Open Sans", Arial, sans-serif';
+                proofCtx.textAlign = 'center';
+                proofCtx.fillText(`${artworkHeight.toFixed(1)}mm`, 0, 0);
+                proofCtx.restore();
+                
+                proofCtx.font = '16px "Open Sans", Arial, sans-serif';
+                proofCtx.textAlign = 'center';
+                proofCtx.fillText(`${artworkWidth.toFixed(1)}mm`, artworkX + scaledArtworkWidth / 2, artworkY - 30);
+                
+                proofCtx.font = '14px "Open Sans", Arial, sans-serif';
+                proofCtx.textAlign = 'center';
+                const disclaimerY = artworkY + scaledArtworkHeight + 45;
+                proofCtx.fillText('This proof shows how your artwork will be cropped to fit the mechanism dimensions.', proofCanvas.width / 2, disclaimerY);
+                proofCtx.fillText('Please review the positioning and cropping carefully, then reply to confirm approval before production.', proofCanvas.width / 2, disclaimerY + 20);
+                
+                const jpgDataURL = proofCanvas.toDataURL('image/jpeg', 0.9);
+                const jpgFilename = `${fn} - ARTWORK PROOF.jpg`;
+                
+                const link = document.createElement('a');
+                link.href = jpgDataURL;
+                link.download = jpgFilename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
 
             function handleImgUp(event) {
                 const loader = document.getElementById('loader');
