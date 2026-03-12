@@ -552,7 +552,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let imgXOffset = 0, imgYOffset = 0;
     let intervalId = null;
     let drawExtraLine = false;
-    let isRA7BTemplate = false;
+    let activeTemplate = 'RA5'; // Now tracks which button was clicked!
     let isDragging = false, dragStartX = 0, dragStartY = 0;
 
     function getNum(id) { return parseFloat(document.getElementById(id).value) || 0; }
@@ -637,17 +637,15 @@ window.addEventListener('DOMContentLoaded', () => {
         const hasMount = mountSize > 0;
         const hasFrame = selectedFrame !== 'none';
 
-        const isRA5 = fH3 === 776;
-        const isRA6 = fH3 === 920;
-        const isRA7 = fH3 === 1057;
-
         const overlapX = hasMount ? 17 : 0;
         let overlapY = 0;
+        
+        // Now checks the active template state instead of exact height
         if (hasMount) {
-            if (isRA5) overlapY = 19.5;
-            else if (isRA6) overlapY = 26.5;
-            else if (isRA7) overlapY = 20;
-            else overlapY = 19.5; 
+            if (activeTemplate === 'RA5') overlapY = 19.5;
+            else if (activeTemplate === 'RA6') overlapY = 26.5;
+            else if (activeTemplate === 'RA7' || activeTemplate === 'RA7B') overlapY = 20;
+            else overlapY = 19.5; // fallback just in case
         }
         
         const actualOverlapX = hasMount ? Math.min(mountSize, overlapX) : 0;
@@ -739,14 +737,14 @@ window.addEventListener('DOMContentLoaded', () => {
                 pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
                 pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
                 pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
                 pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
                 pCtx.lineTo(x, y + h); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
                 pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
-                pCtx.lineTo(x + w, y + h); pCtx.closePath(); pCtx.fill();
+                pCtx.lineTo(x + w, y + h); pctx.closePath(); pCtx.fill();
                 
                 pCtx.strokeStyle = '#888888';
                 pCtx.lineWidth = 1;
@@ -884,7 +882,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const cWpt = cW * 72 / 25.4, cHpt = cH * 72 / 25.4;
         const pdf = new jsPDF({ orientation: cW > cH ? 'landscape' : 'portrait', unit: 'pt', format: [cWpt, cHpt] });
 
-        if (!isRA7BTemplate && upImg) {
+        if (activeTemplate !== 'RA7B' && upImg) {
             const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
             const sW = upImg.width * scl, sH = upImg.height * scl;
             const imgX = (cWpt - sW * 72 / 25.4) / 2 + imgXOffset * 72 / 25.4;
@@ -1058,17 +1056,15 @@ window.addEventListener('DOMContentLoaded', () => {
         const artworkHeight = fH3;
         const frameWidthMm = hasFrame ? (FRAME_WIDTHS[selectedFrame] || 80) : 0;
 
-        const isRA5 = fH3 === 776;
-        const isRA6 = fH3 === 920;
-        const isRA7 = fH3 === 1057;
-
         const overlapX = hasMount ? 17 : 0;
         let overlapY = 0;
+        
+        // Uses global activeTemplate state
         if (hasMount) {
-            if (isRA5) overlapY = 19.5;
-            else if (isRA6) overlapY = 26.5;
-            else if (isRA7) overlapY = 20;
-            else overlapY = 19.5; 
+            if (activeTemplate === 'RA5') overlapY = 19.5;
+            else if (activeTemplate === 'RA6') overlapY = 26.5;
+            else if (activeTemplate === 'RA7' || activeTemplate === 'RA7B') overlapY = 20;
+            else overlapY = 19.5;
         }
 
         const mountExtX = hasMount ? Math.max(0, mountSizeMm - overlapX) : 0;
@@ -1122,13 +1118,17 @@ window.addEventListener('DOMContentLoaded', () => {
                 const x = outerX, y = outerY, w = outerW, h = outerH, ft = sFrame;
                 pctx.fillStyle = SOLID_FRAMES[selectedFrame];
                 pctx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + ft, y + ft); pctx.closePath(); pctx.fill();
+                pctx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
+                pctx.lineTo(x + ft, y + ft); pctx.closePath(); pctx.fill();
                 pctx.beginPath();
-                pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft); pctx.lineTo(x + ft, y + h - ft); pctx.closePath(); pctx.fill();
+                pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pctx.lineTo(x + ft, y + h - ft); pctx.closePath(); pctx.fill();
                 pctx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft); pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
+                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
+                pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
                 pctx.beginPath();
-                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft); pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
+                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
+                pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
                 
                 pctx.strokeStyle = '#888888';
                 pctx.lineWidth = 1;
@@ -1161,10 +1161,10 @@ window.addEventListener('DOMContentLoaded', () => {
         drawCnv();
     }
 
-    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); updateFramePreview(); });
-    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); updateFramePreview(); });
-    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; isRA7BTemplate = false; drawCnv(); updateFramePreview(); });
-    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; isRA7BTemplate = true; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; activeTemplate = 'RA5'; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; activeTemplate = 'RA6'; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; activeTemplate = 'RA7'; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; activeTemplate = 'RA7B'; drawCnv(); updateFramePreview(); });
 
     updateLayout();
     drawCnv();
