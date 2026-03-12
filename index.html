@@ -653,9 +653,9 @@ window.addEventListener('DOMContentLoaded', () => {
             disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
             disclaimerLine2 = 'Please review the positioning and cropping carefully, then confirm approval for your order to progress to production.';
         }
-        const disclaimerAreaTop = botLineY + guideGap + 5 + fontSize + 10;
-        const disclaimerAreaBot = pc.height - 10;
-        const disclaimerMidY = (disclaimerAreaTop + disclaimerAreaBot) / 2;
+        const disclaimerAreaTop = (hasFrame || hasMount) ? botLineY + guideGap + 5 + fontSize + 10 : outerBottom;
+        const disclaimerAreaBot = pc.height - (hasFrame || hasMount ? 10 : 10);
+        const disclaimerMidY = (disclaimerAreaTop + disclaimerAreaBot) / 2 + (hasFrame || hasMount ? 0 : 12);
         pCtx.font = '12px Arial'; pCtx.textAlign = 'center'; pCtx.fillStyle = '#777';
         pCtx.fillText(disclaimerLine1, pc.width / 2, disclaimerMidY - 8);
         pCtx.fillText(disclaimerLine2, pc.width / 2, disclaimerMidY + 8);
