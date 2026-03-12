@@ -10,21 +10,43 @@
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             background: #ffffff;
             color: #000000;
             line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
         }
-        .container { background: #ffffff; padding: 5px 30px 30px 30px; width: 100%; }
+        .split-layout { display: flex; height: 100vh; width: 100%; }
+        .left-panel {
+            width: 40%;
+            min-width: 350px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding: 16px 24px 30px 24px;
+            border-right: 1px solid #e0e0e0;
+            background: #ffffff;
+        }
+        .right-panel {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .right-panel-inner { width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 20px; }
         h1 {
             color: #000000;
             text-align: center;
-            margin: 0 0 10px 0;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin: 0 0 12px 0;
+            font-size: clamp(1rem, 2vw, 1.3rem);
             font-weight: bold;
-            padding-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
         }
         .input-section { margin-bottom: 8px; width: 100%; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #000000; font-size: 0.75rem; }
@@ -73,97 +95,150 @@
         .green-btn:hover:not(:disabled) { background: #303030; }
         .red-btn { background: #FF5733; color: #ffffff; }
         .red-btn:hover:not(:disabled) { background: #303030; }
-        .canvas-container { margin-top: 20px; text-align: center; border: 1px solid #fff; background-color: #fff; width: 100%; }
+        .canvas-container { text-align: center; border: 1px solid #ddd; background-color: #fff; width: 100%; }
         canvas { touch-action: none; user-select: none; }
         .loader { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 1rem; height: 1rem; animation: spin 2s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .frame-status { font-size: 11px; color: #666; margin-top: 2px; min-height: 16px; }
-        @media (max-width: 768px) { body { padding: 10px; } .container { padding: 20px; } .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr; } }
-        @media (max-width: 480px) { .container { padding: 15px; } .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr; } }
+        .frame-preview-section { background: #ffffff; border: none; padding: 20px 0 0 0; width: 100%; text-align: center; }
+        .frame-preview-section h2 { font-size: 1.1rem; margin: 0 0 10px 0; color: #000000; }
+        #framePreviewCnv { display: block; width: 65%; margin: 0 auto; border-radius: 4px; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .frame-picker-wrap { position: relative; }
+        #framePickerBtn { width: 100%; padding: 6px 10px; border: 1px solid #000; border-radius: 4px; font-size: 14px; background: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; min-height: 36px; }
+        #framePickerBtn .thumb { width: 32px; height: 22px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #eee; }
+        #framePickerBtn .label { flex: 1; text-align: left; }
+        #framePickerBtn .arrow { font-size: 10px; color: #666; }
+        .frame-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #000; border-radius: 4px; z-index: 1000; max-height: 280px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .frame-dropdown.open { display: block; }
+        .frame-option { display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+        .frame-option:hover { background: #f0f0f0; }
+        .frame-option.selected { background: #e8e8e8; font-weight: 600; }
+        .frame-option .thumb { width: 32px; height: 22px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #eee; border: 1px solid #ddd; }
+        
+        @media (min-width: 769px) {
+            .compact-group { gap: 6px; }
+            .compact-group button { min-height: 30px; min-width: unset; font-size: 12px; padding: 6px; }
+            .compact-group .arrow-btn { flex: 0 0 35px; }
+        }
+
+        @media (max-width: 768px) {
+            body { overflow: auto; height: auto; }
+            .split-layout { flex-direction: column; height: auto; }
+            .left-panel { width: 100%; max-width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; padding: 15px; }
+            .right-panel { padding: 15px; overflow: visible; }
+            .two-col { grid-template-columns: 1fr; }
+            .three-col { grid-template-columns: 1fr; }
+            #framePreviewCnv { width: 85%; }
+        }
+        @media (max-width: 480px) {
+            .left-panel { padding: 12px; }
+            .two-col { grid-template-columns: 1fr; }
+            .three-col { grid-template-columns: 1fr; }
+            #framePreviewCnv { width: 95%; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>ROLLING ARTWORK CANVAS GENERATOR™</h1>
-    <div class="input-section">
-        <div class="two-col">
-            <div>
-                <label for="cW">CANVAS WIDTH (mm):</label>
-                <input type="number" id="cW" value="1296">
+<div class="split-layout">
+    <div class="left-panel">
+        <h1>ROLLING ARTWORK CANVAS GENERATOR™</h1>
+        <div class="input-section">
+            <div class="two-col">
+                <div>
+                    <label for="cW">CANVAS WIDTH (mm):</label>
+                    <input type="number" id="cW" value="1296">
+                </div>
+                <div>
+                    <label for="cH">CANVAS HEIGHT (mm):</label>
+                    <input type="number" id="cH" value="1825">
+                </div>
             </div>
-            <div>
-                <label for="cH">CANVAS HEIGHT (mm):</label>
-                <input type="number" id="cH" value="1825">
+
+            <div class="three-col" style="margin-top:8px;">
+                <div>
+                    <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
+                    <input type="number" id="fH1" value="12" step="0.1">
+                </div>
+                <div>
+                    <label for="fH2">GAP BELOW ZIP (DEFAULT 44mm):</label>
+                    <input type="number" id="fH2" value="44" step="0.1">
+                </div>
+                <div>
+                    <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
+                    <input type="number" id="fH3" value="776" step="0.1">
+                </div>
             </div>
+
+            <div class="three-col" style="margin-top:8px;">
+                <div>
+                    <label for="mountSize">MOUNT SIZE (mm):</label>
+                    <input type="number" id="mountSize" value="0" min="0" step="1">
+                </div>
+                <div>
+                    <label for="mountColour">MOUNT COLOUR:</label>
+                    <select id="mountColour">
+                        <option value="white">White</option>
+                        <option value="black">Black</option>
+                        <option value="#d4c5a0">Natural MDF</option>
+                        <option value="#8B7355">Oak</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="frameSelect">FRAME SELECTION:</label>
+                    <div class="frame-picker-wrap" id="framePickerWrap">
+                        <div id="framePickerBtn">
+                            <span class="thumb" id="framePickerThumb" style="display:none;"></span>
+                            <span class="label" id="framePickerLabel">Loading frames...</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="frame-dropdown" id="frameDropdown"></div>
+                    </div>
+                    <select id="frameSelect" style="display:none;">
+                        <option value="none">Loading frames...</option>
+                    </select>
+                    <div class="frame-status" id="frameStatus" style="display:none;"></div>
+                </div>
+            </div>
+
+            <div style="margin-top:8px;">
+                <label for="fn">FILE NAME:</label>
+                <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
+            </div>
+
         </div>
 
-        <div class="three-col" style="margin-top:8px;">
-            <div>
-                <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
-                <input type="number" id="fH1" value="12" step="0.1">
-            </div>
-            <div>
-                <label for="fH2">GAP BELOW ZIP (DEFAULT 44mm):</label>
-                <input type="number" id="fH2" value="44" step="0.1">
-            </div>
-            <div>
-                <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
-                <input type="number" id="fH3" value="776" step="0.1">
-            </div>
+        <div class="button-group">
+            <button class="secondary-btn" id="ra5Btn">RA5</button>
+            <button class="secondary-btn" id="ra6Btn">RA6</button>
+            <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
+            <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
         </div>
 
-        <div class="three-col" style="margin-top:8px;">
-            <div>
-                <label for="mountSize">MOUNT SIZE (mm):</label>
-                <input type="number" id="mountSize" value="0" min="0" step="1">
-            </div>
-            <div>
-                <label for="mountColour">MOUNT COLOUR:</label>
-                <select id="mountColour">
-                    <option value="white">White</option>
-                    <option value="black">Black</option>
-                    <option value="#d4c5a0">Natural MDF</option>
-                    <option value="#8B7355">Oak</option>
-                </select>
-            </div>
-            <div>
-                <label for="frameSelect">FRAME SELECTION:</label>
-                <select id="frameSelect">
-                    <option value="none">Loading frames...</option>
-                </select>
-                <div class="frame-status" id="frameStatus"></div>
-            </div>
+        <input type="file" id="imgLdr" style="display:none;"/>
+
+        <div class="button-group compact-group">
+            <button class="arrow-btn" id="leftArrow">&#8592;</button>
+            <button class="arrow-btn" id="rightArrow">&#8594;</button>
+            <button class="arrow-btn" id="upArrow">&#8593;</button>
+            <button class="arrow-btn" id="downArrow">&#8595;</button>
+            <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
+            <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
+            <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button>
+            <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
         </div>
 
-        <div style="margin-top:8px;">
-            <label for="fn">FILE NAME:</label>
-            <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
+        <div id="loader" class="loader"></div>
+        
+        <div class="frame-preview-section" id="framePreviewSection" style="display:none;">
+            <h2>IMAGE PREVIEW</h2>
+            <canvas id="framePreviewCnv"></canvas>
         </div>
 
     </div>
-
-    <div class="button-group">
-        <button class="secondary-btn" id="ra5Btn">RA5</button>
-        <button class="secondary-btn" id="ra6Btn">RA6</button>
-        <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
-        <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
+    <div class="right-panel">
+        <div class="right-panel-inner">
+            <div class="canvas-container"><canvas id="cnv"></canvas></div>
+        </div>
     </div>
-
-    <input type="file" id="imgLdr" style="display:none;"/>
-
-    <div class="button-group">
-        <button class="arrow-btn" id="leftArrow">&#8592;</button>
-        <button class="arrow-btn" id="rightArrow">&#8594;</button>
-        <button class="arrow-btn" id="upArrow">&#8593;</button>
-        <button class="arrow-btn" id="downArrow">&#8595;</button>
-        <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
-        <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
-        <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button>
-        <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
-    </div>
-
-    <div id="loader" class="loader"></div>
-    <div class="canvas-container"><canvas id="cnv"></canvas></div>
 </div>
 
 <script>
@@ -180,6 +255,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     async function discoverFrames() {
         const sel = document.getElementById('frameSelect');
+        const dropdown = document.getElementById('frameDropdown');
         try {
             const res = await fetch(GITHUB_API);
             if (!res.ok) throw new Error('API error');
@@ -192,6 +268,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 const key = f.name.replace(/\.jpg$/i, '').toUpperCase();
                 FRAMES[key] = { url: GITHUB_RAW + f.name };
             });
+
             sel.innerHTML = '<option value="none">No Frame</option>';
             ['BLACK', 'WHITE'].forEach(key => {
                 const opt = document.createElement('option');
@@ -201,16 +278,103 @@ window.addEventListener('DOMContentLoaded', () => {
             frameFiles.forEach(f => {
                 const key = f.name.replace(/\.jpg$/i, '').toUpperCase();
                 const opt = document.createElement('option');
-                opt.value = key;
-                opt.textContent = key;
+                opt.value = key; opt.textContent = key;
                 sel.appendChild(opt);
             });
+
+            const allOptions = [
+                { value: 'none', label: 'No Frame', url: null },
+                { value: 'BLACK', label: 'Black Frame', url: null },
+                { value: 'WHITE', label: 'White Frame', url: null },
+                ...frameFiles.map(f => ({ value: f.name.replace(/\.jpg$/i, '').toUpperCase(), label: f.name.replace(/\.jpg$/i, '').toUpperCase(), url: GITHUB_RAW + f.name }))
+            ];
+
+            dropdown.innerHTML = '';
+            allOptions.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'frame-option' + (opt.value === 'none' ? ' selected' : '');
+                div.dataset.value = opt.value;
+
+                if (opt.url) {
+                    const img = document.createElement('img');
+                    img.className = 'thumb';
+                    img.src = opt.url;
+                    img.crossOrigin = 'anonymous';
+                    div.appendChild(img);
+                } else {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'thumb';
+                    swatch.style.background = opt.value === 'BLACK' ? '#111' : opt.value === 'WHITE' ? '#f5f5f5' : '#ddd';
+                    swatch.style.border = '1px solid #ccc';
+                    div.appendChild(swatch);
+                }
+
+                const label = document.createElement('span');
+                label.textContent = opt.label;
+                div.appendChild(label);
+
+                div.addEventListener('click', () => {
+                    sel.value = opt.value;
+                    sel.dispatchEvent(new Event('change'));
+                    setPickerValue(opt.value, opt.label, opt.url);
+                    dropdown.classList.remove('open');
+                    dropdown.querySelectorAll('.frame-option').forEach(o => o.classList.remove('selected'));
+                    div.classList.add('selected');
+                });
+
+                dropdown.appendChild(div);
+            });
+
+            setPickerValue('none', 'No Frame', null);
             setStatus('');
         } catch (e) {
             sel.innerHTML = '<option value="none">No Frame</option>';
+            document.getElementById('framePickerLabel').textContent = 'No Frame';
             setStatus('Could not load frame list from GitHub.', '#c00');
         }
     }
+
+    function setPickerValue(value, label, url) {
+        const btn = document.getElementById('framePickerBtn');
+        const thumb = document.getElementById('framePickerThumb');
+        const lbl = document.getElementById('framePickerLabel');
+        lbl.textContent = label;
+        if (url) {
+            if (thumb.tagName === 'SPAN') {
+                const img = document.createElement('img');
+                img.className = 'thumb';
+                img.crossOrigin = 'anonymous';
+                img.id = 'framePickerThumb';
+                thumb.replaceWith(img);
+            }
+            const t = document.getElementById('framePickerThumb');
+            t.src = url;
+            t.style.display = 'block';
+        } else {
+            const t = document.getElementById('framePickerThumb');
+            if (t.tagName === 'IMG') {
+                const span = document.createElement('span');
+                span.className = 'thumb';
+                span.id = 'framePickerThumb';
+                span.style.display = 'none';
+                t.replaceWith(span);
+            } else {
+                t.style.display = value === 'none' ? 'none' : 'block';
+                if (value !== 'none') {
+                    t.style.background = value === 'BLACK' ? '#111' : '#f5f5f5';
+                    t.style.border = '1px solid #ccc';
+                }
+            }
+        }
+    }
+
+    document.getElementById('framePickerBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('frameDropdown').classList.toggle('open');
+    });
+    document.addEventListener('click', () => {
+        document.getElementById('frameDropdown').classList.remove('open');
+    });
 
     function loadFrameImage(key) {
         return new Promise((resolve, reject) => {
@@ -393,14 +557,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function getNum(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
-    function setStatus(msg, colour) {
-        const el = document.getElementById('frameStatus');
-        el.textContent = msg;
-        el.style.color = colour || '#666';
+    function setStatus(msg, colour) {}
+
+    function updateLayout() {
+        const previewSection = document.getElementById('framePreviewSection');
+        if (window.innerWidth <= 768) {
+            document.querySelector('.right-panel-inner').appendChild(previewSection);
+        } else {
+            document.querySelector('.left-panel').appendChild(previewSection);
+        }
     }
 
     function drawCnv() {
-        const container = document.querySelector('.canvas-container');
+        const container = document.querySelector('.right-panel-inner');
         const cW = getNum('cW'), cH = getNum('cH');
         const fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
         const sf = container.clientWidth / cW;
@@ -489,7 +658,7 @@ window.addEventListener('DOMContentLoaded', () => {
         pc.height = sAH + totalExtra + topPad + botPad;
         const pCtx = pc.getContext('2d');
 
-        pCtx.fillStyle = '#f0f0f0';
+        pCtx.fillStyle = '#ffffff';
         pCtx.fillRect(0, 0, pc.width, pc.height);
 
         const outerX      = (pc.width - (sAW + totalExtra)) / 2;
@@ -540,18 +709,17 @@ window.addEventListener('DOMContentLoaded', () => {
                 pCtx.beginPath();
                 pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft); pCtx.lineTo(x + w - ft, y + h - ft);
                 pCtx.lineTo(x + w, y + h); pCtx.closePath(); pCtx.fill();
-                pCtx.strokeStyle = selectedFrame === 'WHITE' ? '#ccc' : '#000';
-                pCtx.lineWidth = 0.5;
+                
+                pCtx.strokeStyle = '#888888';
+                pCtx.lineWidth = 1;
                 pCtx.beginPath();
                 pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft);
                 pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
                 pCtx.moveTo(x, y + h); pCtx.lineTo(x + ft, y + h - ft);
                 pCtx.moveTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
                 pCtx.stroke();
-                if (selectedFrame === 'WHITE') {
-                    pCtx.strokeStyle = '#888'; pCtx.lineWidth = 1;
-                    pCtx.strokeRect(x, y, w, h);
-                }
+                pCtx.strokeRect(x, y, w, h);
+                pCtx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
                 pCtx.lineWidth = 1.5;
             } else {
                 let frameImg = frameImageCache[selectedFrame];
@@ -714,7 +882,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const rdr = new FileReader();
         rdr.onload = e => {
             upImg = new Image();
-            upImg.onload = () => { imgXOffset = 0; imgYOffset = 0; loader.style.display = 'none'; drawCnv(); };
+            upImg.onload = () => { imgXOffset = 0; imgYOffset = 0; loader.style.display = 'none'; drawCnv(); updateFramePreview(); };
             upImg.src = e.target.result;
         };
         rdr.readAsDataURL(event.target.files[0]);
@@ -723,7 +891,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function rmvImg() {
         upImg = null; imgXOffset = 0; imgYOffset = 0;
         document.getElementById('loader').style.display = 'none';
-        drawCnv();
+        drawCnv(); updateFramePreview();
     }
 
     function shiftImage(direction, vertical = false) {
@@ -776,7 +944,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const sW = upImg.width * scl, sH = upImg.height * scl;
         imgXOffset = Math.max(-(sW - cW) / 2, Math.min((sW - cW) / 2, (cx - rect.left) - dragStartX));
         imgYOffset = Math.max(-(sH - fH3) / 2, Math.min((sH - fH3) / 2, (cy - rect.top) - dragStartY));
-        drawCnv();
+        drawCnv(); updateFramePreview();
     }
 
     function endDrag() { isDragging = false; }
@@ -805,34 +973,145 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('fn').addEventListener('input', function() { fn = this.value; drawCnv(); });
-    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', drawCnv));
+    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); }));
+    document.getElementById('mountSize').addEventListener('input', updateFramePreview);
+    document.getElementById('mountColour').addEventListener('change', updateFramePreview);
 
     document.getElementById('frameSelect').addEventListener('change', async function() {
         const key = this.value;
-        if (key === 'none') { setStatus(''); return; }
-        if (frameImageCache[key]) { setStatus('Frame ready.', '#2a7a2a'); return; }
-        try { await loadFrameImage(key); } catch (e) {}
+        if (key === 'none' || key === 'BLACK' || key === 'WHITE') { 
+            setStatus(''); 
+            updateFramePreview(); 
+            return; 
+        }
+        if (frameImageCache[key]) { 
+            setStatus('Frame ready.', '#2a7a2a'); 
+            updateFramePreview(); 
+            return; 
+        }
+        try { 
+            await loadFrameImage(key); 
+            updateFramePreview(); 
+        } catch (e) {
+            updateFramePreview();
+        }
     });
 
+    async function updateFramePreview() {
+        const fH3 = getNum('fH3');
+        const section = document.getElementById('framePreviewSection');
+        
+        if (fH3 <= 0) {
+            section.style.display = 'none';
+            return;
+        }
+
+        const selectedFrame = document.getElementById('frameSelect').value;
+        const previewCnv = document.getElementById('framePreviewCnv');
+        const hasFrame = selectedFrame !== 'none';
+        const mountSize = getNum('mountSize');
+        const hasMount = mountSize > 0;
+
+        section.style.display = 'block';
+
+        const cW = getNum('cW');
+        const artworkWidth = cW - 10;
+        const artworkHeight = fH3;
+        const frameWidthMm = hasFrame ? (FRAME_WIDTHS[selectedFrame] || 80) : 0;
+        const mountSizeMm = mountSize;
+
+        const maxW = section.clientWidth || 400;
+        const totalWmm = artworkWidth + mountSizeMm * 2 + frameWidthMm * 2;
+        const totalHmm = artworkHeight + mountSizeMm * 2 + frameWidthMm * 2;
+        const sf = Math.min(maxW / totalWmm, 300 / totalHmm);
+
+        previewCnv.width = Math.round(totalWmm * sf);
+        previewCnv.height = Math.round(totalHmm * sf);
+        const pctx = previewCnv.getContext('2d');
+        pctx.clearRect(0, 0, previewCnv.width, previewCnv.height);
+
+        const sFrame = frameWidthMm * sf;
+        const sMount = mountSizeMm * sf;
+        const sAW = artworkWidth * sf;
+        const sAH = artworkHeight * sf;
+        const outerX = 0, outerY = 0;
+        const outerW = previewCnv.width, outerH = previewCnv.height;
+        const innerX = sFrame + sMount, innerY = sFrame + sMount;
+
+        pctx.fillStyle = '#808080';
+        pctx.fillRect(innerX, innerY, sAW, sAH);
+
+        if (upImg) {
+            const scl = Math.max(sAW / upImg.width, sAH / upImg.height);
+            const dW = upImg.width * scl, dH = upImg.height * scl;
+            pctx.save();
+            pctx.beginPath(); pctx.rect(innerX, innerY, sAW, sAH); pctx.clip();
+            pctx.drawImage(upImg, innerX + (sAW - dW) / 2 + imgXOffset * sf, innerY + (sAH - dH) / 2 + imgYOffset * sf, dW, dH);
+            pctx.restore();
+        }
+
+        if (hasMount) {
+            const mountColour = document.getElementById('mountColour').value;
+            const mc = mountColour === 'white' ? '#f5f5f5' : mountColour === 'black' ? '#111' : mountColour;
+            pctx.fillStyle = mc;
+            pctx.fillRect(sFrame, sFrame, outerW - sFrame * 2, sMount);
+            pctx.fillRect(sFrame, outerH - sFrame - sMount, outerW - sFrame * 2, sMount);
+            pctx.fillRect(sFrame, sFrame, sMount, outerH - sFrame * 2);
+            pctx.fillRect(outerW - sFrame - sMount, sFrame, sMount, outerH - sFrame * 2);
+        }
+
+        if (hasFrame) {
+            if (SOLID_FRAMES[selectedFrame]) {
+                const x = outerX, y = outerY, w = outerW, h = outerH, ft = sFrame;
+                pctx.fillStyle = SOLID_FRAMES[selectedFrame];
+                pctx.beginPath();
+                pctx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + ft, y + ft); pctx.closePath(); pctx.fill();
+                pctx.beginPath();
+                pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft); pctx.lineTo(x + ft, y + h - ft); pctx.closePath(); pctx.fill();
+                pctx.beginPath();
+                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft); pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
+                pctx.beginPath();
+                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft); pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
+                
+                pctx.strokeStyle = '#888888';
+                pctx.lineWidth = 1;
+                pctx.beginPath();
+                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft);
+                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
+                pctx.moveTo(x, y + h); pctx.lineTo(x + ft, y + h - ft);
+                pctx.moveTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pctx.stroke();
+                pctx.strokeRect(x, y, w, h);
+                pctx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
+            } else {
+                try {
+                    const frameImg = frameImageCache[selectedFrame] || await loadFrameImage(selectedFrame);
+                    drawFrameAroundRect(pctx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
+                } catch(e) {}
+            }
+        }
+    }
+
+    window.addEventListener('resize', () => { drawCnv(); updateLayout(); });
     document.getElementById('jpgBtn').addEventListener('click', exportLowResJPG);
     document.getElementById('pdfBtn').addEventListener('click', genPDF);
     document.getElementById('imgLdr').addEventListener('change', handleImgUp);
     document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
     document.getElementById('rmvBtn').addEventListener('click', rmvImg);
-    window.addEventListener('resize', drawCnv);
 
     function setValues(cW, cH, fH1, fH2, fH3) {
         ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, cH, fH1, fH2, fH3][i]);
         drawCnv();
     }
 
-    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); });
-    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); });
-    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; isRA7BTemplate = false; drawCnv(); });
-    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; isRA7BTemplate = true; drawCnv(); });
+    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; isRA7BTemplate = false; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; isRA7BTemplate = true; drawCnv(); updateFramePreview(); });
 
+    updateLayout();
     drawCnv();
-    discoverFrames();
+    discoverFrames().then(() => updateFramePreview());
 });
 </script>
 </body>
