@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rolling Artwork Canvas Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.7/canvg.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             max-width: 1200px;
@@ -21,15 +17,7 @@
             color: #000000;
             line-height: 1.5;
         }
-
-        .container {
-            background: #ffffff;
-            border: 0px solid #000000;
-            border-radius: 0;
-            padding: 5px 30px 30px 30px;
-            width: 100%;
-        }
-
+        .container { background: #ffffff; padding: 5px 30px 30px 30px; width: 100%; }
         h1 {
             color: #000000;
             text-align: center;
@@ -38,21 +26,9 @@
             font-weight: bold;
             padding-bottom: 15px;
         }
-
-        .input-section {
-            margin-bottom: 30px;
-            width: 100%;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #000000;
-            font-size: 1rem;
-        }
-
-        input[type="number"], input[type="text"] {
+        .input-section { margin-bottom: 8px; width: 100%; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #000000; font-size: 0.75rem; }
+        input[type="number"], input[type="text"], select {
             width: 100%;
             padding: clamp(8px, 2vw, 12px);
             height: clamp(30px, 5vw, 30px);
@@ -64,23 +40,15 @@
             background: #ffffff;
             color: #000000;
         }
-
-        input[type="number"]:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: #000000;
-            box-shadow: inset 0 0 0 2px #000000;
-        }
-
-        .button-group {
-            padding: clamp(0px, 2vw, 0px);
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
+        select { height: auto; padding: 6px 10px; cursor: pointer; }
+        input:focus, select:focus { outline: none; box-shadow: inset 0 0 0 2px #000000; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
+        .two-col label { margin-bottom: 4px; }
+        .two-col input, .two-col select { margin-bottom: 0; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 0; }
+        .three-col label { margin-bottom: 4px; font-size: 0.75rem; }
+        .three-col input, .three-col select { margin-bottom: 0; }
+        .button-group { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
         button {
             font-size: clamp(9px, 2vw, 16px);
             padding: clamp(6px, 1.5vw, 10px);
@@ -97,708 +65,775 @@
             transition: all 0.2s ease;
             white-space: normal;
         }
-
-        .secondary-btn {
-            background: #ffffff;
-            color: #000000;
-        }
-
-        .secondary-btn:hover:not(:disabled) {
-            background: #303030;
-            color: #ffffff;
-        }
-
-        .arrow-btn {
-            background: #606060;
-            color: #ffffff;
-            font-size: clamp(16px, 3vw, 24px);
-            min-width: 30px;
-        }
-
-        .arrow-btn:hover:not(:disabled) {
-            background: #303030;
-        }
-
-        .arrow-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .green-btn {
-            background: #4CAF50;
-            color: #ffffff;
-        }
-
-        .green-btn:hover:not(:disabled) {
-            background: #303030;
-        }
-
-        .red-btn {
-            background: #FF5733;
-            color: #ffffff;
-        }
-
-        .red-btn:hover:not(:disabled) {
-            background: #303030;
-        }
-
-        .canvas-container {
-            margin-top: 20px;
-            text-align: center;
-            padding: 0px;
-            border: 1px solid #fff;
-            background-color: #fff;
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
-        canvas {
-            touch-action: none;
-            user-select: none;
-        }
-
-        .loader {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 1rem;
-            height: 1rem;
-            animation: spin 2s linear infinite;
-            display: none;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-		
-		@media (max-width: 1200px) and (min-width: 600px) {
-			button {
-				border-radius: 20px;
-			}
-		}
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .container {
-                padding: 20px;
-            }
-            
-            label {
-                font-size: clamp(12px, 2vw, 12px);
-                margin-bottom: clamp(2px, 1vw, 4px);
-            }
-
-            input[type="number"], input[type="text"] {
-                padding: clamp(5px, 1.5vw, 10px);
-                height: clamp(20px, 1vw, 20px);
-            }
-            
-            button {
-                font-size: clamp(14px, 1.5vw, 14px);
-                padding: clamp(4px, 1.5vw, 6px);
-                min-width: 100px;
-                max-width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-            
-            label {
-                font-size: clamp(12px, 2vw, 10px);
-                margin-bottom: clamp(1px, 1vw, 3px);
-            }
-
-            input[type="number"], input[type="text"] {
-                padding: clamp(12px, 1.2vw, 12px);
-                height: clamp(25px, 4vw, 30px);
-            }
-            
-            button {
-                font-size: clamp(11px, 1.2vw, 12px);
-                padding: clamp(5px, 1vw, 15px);
-                min-width: 80px;
-            }
-        }
+        .secondary-btn:hover:not(:disabled) { background: #303030; color: #ffffff; }
+        .arrow-btn { background: #606060; color: #ffffff; font-size: clamp(16px, 3vw, 24px); min-width: 30px; }
+        .arrow-btn:hover:not(:disabled) { background: #303030; }
+        .arrow-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .green-btn { background: #4CAF50; color: #ffffff; }
+        .green-btn:hover:not(:disabled) { background: #303030; }
+        .red-btn { background: #FF5733; color: #ffffff; }
+        .red-btn:hover:not(:disabled) { background: #303030; }
+        .canvas-container { margin-top: 20px; text-align: center; border: 1px solid #fff; background-color: #fff; width: 100%; }
+        canvas { touch-action: none; user-select: none; }
+        .loader { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 1rem; height: 1rem; animation: spin 2s linear infinite; display: none; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .frame-status { font-size: 11px; color: #666; margin-top: 2px; min-height: 16px; }
+        @media (max-width: 768px) { body { padding: 10px; } .container { padding: 20px; } .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr; } }
+        @media (max-width: 480px) { .container { padding: 15px; } .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>ROLLING ARTWORK CANVAS GENERATOR™</h1>
-        
-        <div class="input-section">
-            <label for="cW">CANVAS WIDTH (mm):</label>
-            <input type="number" id="cW" placeholder="Enter width" value="1296">
-            
-            <label for="cH">CANVAS HEIGHT (mm):</label>
-            <input type="number" id="cH" placeholder="Enter height" value="1825">
-            
-            <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
-            <input type="number" id="fH1" placeholder="Enter height" value="12" step="0.1">
-            
-            <label for="fH2">GAP BELOW ZIP (DEFAULT 44mm):</label>
-            <input type="number" id="fH2" placeholder="Enter height" value="44" step="0.1">
-            
-            <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
-            <input type="number" id="fH3" placeholder="Enter height" value="776" step="0.1">
-            
+<div class="container">
+    <h1>ROLLING ARTWORK CANVAS GENERATOR™</h1>
+    <div class="input-section">
+        <div class="two-col">
+            <div>
+                <label for="cW">CANVAS WIDTH (mm):</label>
+                <input type="number" id="cW" value="1296">
+            </div>
+            <div>
+                <label for="cH">CANVAS HEIGHT (mm):</label>
+                <input type="number" id="cH" value="1825">
+            </div>
+        </div>
+
+        <div class="three-col" style="margin-top:8px;">
+            <div>
+                <label for="fH1">ZIP WELD AREA (DEFAULT 12mm):</label>
+                <input type="number" id="fH1" value="12" step="0.1">
+            </div>
+            <div>
+                <label for="fH2">GAP BELOW ZIP (DEFAULT 44mm):</label>
+                <input type="number" id="fH2" value="44" step="0.1">
+            </div>
+            <div>
+                <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
+                <input type="number" id="fH3" value="776" step="0.1">
+            </div>
+        </div>
+
+        <div class="three-col" style="margin-top:8px;">
+            <div>
+                <label for="mountSize">MOUNT SIZE (mm):</label>
+                <input type="number" id="mountSize" value="0" min="0" step="1">
+            </div>
+            <div>
+                <label for="mountColour">MOUNT COLOUR:</label>
+                <select id="mountColour">
+                    <option value="white">White</option>
+                    <option value="black">Black</option>
+                    <option value="#d4c5a0">Natural MDF</option>
+                    <option value="#8B7355">Oak</option>
+                </select>
+            </div>
+            <div>
+                <label for="frameSelect">FRAME SELECTION:</label>
+                <select id="frameSelect">
+                    <option value="none">Loading frames...</option>
+                </select>
+                <div class="frame-status" id="frameStatus"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:8px;">
             <label for="fn">FILE NAME:</label>
             <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
         </div>
 
-        <div class="button-group">
-            <button class="secondary-btn" id="ra5Btn">RA5</button>
-            <button class="secondary-btn" id="ra6Btn">RA6</button>
-            <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
-            <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
-        </div>
-
-        <input type="file" id="imgLdr" name="imageLoader" style="display: none;"/>
-        
-        <div class="button-group">
-            <button class="arrow-btn" id="leftArrow">←</button>
-            <button class="arrow-btn" id="rightArrow">→</button>
-            <button class="arrow-btn" id="upArrow">↑</button>
-            <button class="arrow-btn" id="downArrow">↓</button>
-            <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
-            <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
-            <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button> 
-            <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button> 
-        </div>
-
-        <div id="loader" class="loader"></div>
-
-        <div class="canvas-container">
-            <canvas id="cnv"></canvas>
-        </div>
     </div>
 
-    <script>
-        window.addEventListener('DOMContentLoaded', (event) => {
-            const cnv = document.getElementById('cnv');
-            const ctx = cnv.getContext('2d');
-            let fn = document.getElementById('fn').value, upImg, imgData;
-            let imgXOffset = 0;
-            let imgYOffset = 0;
-            let intervalId = null;
-            let drawExtraLine = false;
-            let isRA7BTemplate = false;
+    <div class="button-group">
+        <button class="secondary-btn" id="ra5Btn">RA5</button>
+        <button class="secondary-btn" id="ra6Btn">RA6</button>
+        <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
+        <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
+    </div>
 
-            let isDragging = false;
-            let dragStartX = 0;
-            let dragStartY = 0;
+    <input type="file" id="imgLdr" style="display:none;"/>
 
-            function drawCnv() {
-				const container = document.querySelector('.canvas-container');
-				const containerWidth = container.clientWidth;
-				const cW = getNum('cW');
-				const cH = getNum('cH');
-				const fH1 = getNum('fH1');
-				const fH2 = getNum('fH2');
-				const fH3 = getNum('fH3');
+    <div class="button-group">
+        <button class="arrow-btn" id="leftArrow">&#8592;</button>
+        <button class="arrow-btn" id="rightArrow">&#8594;</button>
+        <button class="arrow-btn" id="upArrow">&#8593;</button>
+        <button class="arrow-btn" id="downArrow">&#8595;</button>
+        <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
+        <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
+        <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button>
+        <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+    </div>
 
-				const scaleFactor = containerWidth / cW;
+    <div id="loader" class="loader"></div>
+    <div class="canvas-container"><canvas id="cnv"></canvas></div>
+</div>
 
-				cnv.width = cW * scaleFactor;
-				cnv.height = cH * scaleFactor;
+<script>
+window.addEventListener('DOMContentLoaded', () => {
 
-				ctx.clearRect(0, 0, cnv.width, cnv.height);
+    const GITHUB_RAW = 'https://raw.githubusercontent.com/willholdsworth/Rolling-Art-Generator/main/images/';
+    const GITHUB_API = 'https://api.github.com/repos/willholdsworth/Rolling-Art-Generator/contents/images';
 
-				ctx.save();
-				ctx.scale(scaleFactor, scaleFactor);
+    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 70, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93 };
+    const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5' };
 
-				drawRect(0, fH1 + fH2, cW, fH3, 'grey');
-				if (upImg) {
-					drawImgPreview(upImg, cW, fH1 + fH2, fH3);
-				}
-				drawLn(cW, cH, [fH1, fH1 + fH2, fH1 + fH2 + fH3]);
-				drawTxt(cW, cH, fH1);
+    let FRAMES = {};
+    const frameImageCache = {};
 
-				if (drawExtraLine) {
-					ctx.beginPath();
-					ctx.moveTo(0, cH - 12);
-					ctx.lineTo(cW, cH - 12);
-					ctx.strokeStyle = 'black';
-					ctx.lineWidth = 1;
-					ctx.stroke();
-				}
+    async function discoverFrames() {
+        const sel = document.getElementById('frameSelect');
+        try {
+            const res = await fetch(GITHUB_API);
+            if (!res.ok) throw new Error('API error');
+            const files = await res.json();
+            const frameFiles = files
+                .filter(f => /^FR\d+\.jpg$/i.test(f.name))
+                .sort((a, b) => parseInt(a.name.match(/\d+/)[0]) - parseInt(b.name.match(/\d+/)[0]));
+            FRAMES = {};
+            frameFiles.forEach(f => {
+                const key = f.name.replace(/\.jpg$/i, '').toUpperCase();
+                FRAMES[key] = { url: GITHUB_RAW + f.name };
+            });
+            sel.innerHTML = '<option value="none">No Frame</option>';
+            ['BLACK', 'WHITE'].forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key; opt.textContent = key === 'BLACK' ? 'Black Frame' : 'White Frame';
+                sel.appendChild(opt);
+            });
+            frameFiles.forEach(f => {
+                const key = f.name.replace(/\.jpg$/i, '').toUpperCase();
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = key;
+                sel.appendChild(opt);
+            });
+            setStatus('');
+        } catch (e) {
+            sel.innerHTML = '<option value="none">No Frame</option>';
+            setStatus('Could not load frame list from GitHub.', '#c00');
+        }
+    }
 
-				ctx.restore();
-				updateArrowButtons(cW);
-			}
+    function loadFrameImage(key) {
+        return new Promise((resolve, reject) => {
+            if (frameImageCache[key]) { resolve(frameImageCache[key]); return; }
+            const frame = FRAMES[key];
+            if (!frame) { reject('unknown key'); return; }
+            setStatus('Loading frame image...', '#888');
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                frameImageCache[key] = img;
+                setStatus('Frame loaded.', '#2a7a2a');
+                resolve(img);
+            };
+            img.onerror = () => {
+                setStatus('Could not load frame image.', '#c00');
+                reject('load error');
+            };
+            img.src = frame.url;
+        });
+    }
 
-            function getNum(id) {
-                return parseFloat(document.getElementById(id).value);
-            }
+    function drawFrameAroundRect(tCtx, img, frameWidthMm, artworkScaleFactor, x, y, w, h) {
+        const ft = Math.round(frameWidthMm * artworkScaleFactor);
+        if (!img || ft <= 0) return;
 
-            function drawRect(x, y, w, h, col) {
-                ctx.fillStyle = col;
-                ctx.fillRect(x, y, w, h);
-            }
+        const IMG_W = 100, IMG_H = 150, IMG_MM = 100;
+        const mmToScale = artworkScaleFactor;
+        const dTile = (IMG_MM * mmToScale) * (IMG_H / IMG_H);
+        const stride = dTile * 0.6;
+        const featherW = dTile * 0.4;
 
-            function drawImgPreview(img, cW, y, h) {
-                const scl = Math.max(cW / img.width, h / img.height);
-                const sW = img.width * scl;
-                const sH = img.height * scl;
+        function makeTiledStrip(length, vertical) {
+            const oc = document.createElement('canvas');
+            oc.width  = vertical ? ft : length;
+            oc.height = vertical ? length : ft;
+            const octx = oc.getContext('2d');
+
+            function renderTile(ctx, pos) {
                 ctx.save();
-                ctx.beginPath();
-                ctx.rect(0, y, cW, h);
-                ctx.clip();
-                ctx.drawImage(img, (cW - sW) / 2 + imgXOffset, y + (h - sH) / 2 + imgYOffset, sW, sH);
+                if (!vertical) {
+                    ctx.translate(pos + dTile / 2, ft / 2);
+                    ctx.rotate(Math.PI / 2);
+                    ctx.drawImage(img, 0, 0, IMG_W, IMG_H, -ft / 2, -dTile / 2, ft, dTile);
+                } else {
+                    ctx.translate(ft / 2, pos + dTile / 2);
+                    ctx.drawImage(img, 0, 0, IMG_W, IMG_H, -ft / 2, -dTile / 2, ft, dTile);
+                }
                 ctx.restore();
             }
 
-            function drawLn(cW, cH, hs) {
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(0, 0, cW, cH);
-                hs.forEach(h => {
-                    ctx.beginPath();
-                    ctx.moveTo(0, h);
-                    ctx.lineTo(cW, h);
-                    ctx.stroke();
-                });
+            const bg = document.createElement('canvas');
+            bg.width = oc.width; bg.height = oc.height;
+            const bgctx = bg.getContext('2d');
+            bgctx.save();
+            if (!vertical) {
+                bgctx.translate(length / 2, ft / 2);
+                bgctx.rotate(Math.PI / 2);
+                bgctx.drawImage(img, 0, 0, IMG_W, IMG_H, -ft / 2, -length / 2, ft, length);
+            } else {
+                bgctx.drawImage(img, 0, 0, IMG_W, IMG_H, 0, 0, ft, length);
+            }
+            bgctx.restore();
+            octx.drawImage(bg, 0, 0);
 
-                const offset = 1.5 * 72 / 25.4;
-                ctx.beginPath();
-                ctx.moveTo(offset, 0);
-                ctx.lineTo(offset, cH);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(cW - offset, 0);
-                ctx.lineTo(cW - offset, cH);
-                ctx.stroke();
+            let pos = 0;
+            while (pos < length) {
+                renderTile(octx, pos);
+                pos += dTile * 1.09;
             }
 
-            function drawTxt(cW, cH, fH1) {
-				ctx.font = '2.5mm Arial';
-				ctx.fillStyle = 'black';
-				ctx.textAlign = 'center';
-				ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
-				ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
-				ctx.textAlign = 'left';
-				ctx.fillText(fn, 15, fH1 + 15);
-			}
-
-			function genPDF() {
-				const cW = getNum('cW');
-				const cH = getNum('cH');
-				const fH1 = getNum('fH1');
-				const fH2 = getNum('fH2');
-				const fH3 = getNum('fH3');
-				fn = document.getElementById('fn').value || 'default_filename';
-				const aFH2 = fH1 + fH2;
-				const aH = fH1 + fH2 + fH3;
-
-				const cWPoints = cW * 72 / 25.4;
-				const cHPoints = cH * 72 / 25.4;
-
-				const pdf = new jsPDF({
-					orientation: cW > cH ? 'landscape' : 'portrait',
-					unit: 'pt',
-					format: [cWPoints, cHPoints]
-				});
-
-				if (!isRA7BTemplate && upImg) {
-					const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
-					const sW = upImg.width * scl;
-					const sH = upImg.height * scl;
-					const imgX = (cWPoints - sW * 72 / 25.4) / 2 + imgXOffset * 72 / 25.4;
-					const imgY = (aFH2 + fH3 / 2) * 72 / 25.4 - (sH * 72 / 25.4) / 2 + imgYOffset * 72 / 25.4;
-
-					let canvas = document.createElement('canvas');
-					canvas.width = upImg.width;
-					canvas.height = upImg.height;
-					let ctx = canvas.getContext('2d');
-					ctx.drawImage(upImg, 0, 0, canvas.width, canvas.height);
-					let imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-					pdf.addImage(imgData, 'JPEG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
-				}
-
-				pdf.setFillColor(255, 255, 255);
-				pdf.rect(0, 0, cWPoints, (fH1 + fH2) * 72 / 25.4, 'F');
-				pdf.rect(0, aH * 72 / 25.4, cWPoints, (cH - aH) * 72 / 25.4, 'F');
-
-				pdf.setLineWidth(0.1 * 72 / 25.4);
-				pdf.rect(0, 0, cWPoints, cHPoints);
-				pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHPoints);
-				pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHPoints);
-				pdf.line(0, fH1 * 72 / 25.4, cWPoints, fH1 * 72 / 25.4);
-				pdf.line(0, aFH2 * 72 / 25.4, cWPoints, aFH2 * 72 / 25.4);
-				pdf.line(0, aH * 72 / 25.4, cWPoints, aH * 72 / 25.4);
-
-				if (drawExtraLine) {
-					pdf.setLineWidth(1);
-					pdf.line(0, (cH - 12) * 72 / 25.4, cWPoints, (cH - 12) * 72 / 25.4);
-				}
-
-				pdf.setFont("Helvetica", 2 * 72 / 25.4);
-				pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
-				pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
-				pdf.text(fn, 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4);
-
-				const measurements = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
-				pdf.text(measurements, cWPoints - 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4, { align: 'right' });
-
-				pdf.save(`${fn}.pdf`);
-			}
-
-            function exportLowResJPG() {
-                const cW = getNum('cW');
-                const fH1 = getNum('fH1');
-                const fH2 = getNum('fH2');
-                const fH3 = getNum('fH3');
-                
-                const guideOffset = 5;
-                const artworkWidth = cW - (2 * guideOffset);
-                const artworkHeight = fH3;
-                
-                const margin = 80;
-                const topMargin = 120;
-                const bottomMargin = 100;
-                const cropMarkLength = 20;
-                const cropMarkOffset = 10;
-                
-                const maxArtworkDimension = 800;
-                const artworkScaleFactor = Math.min(maxArtworkDimension / artworkWidth, maxArtworkDimension / artworkHeight);
-                
-                const scaledArtworkWidth = artworkWidth * artworkScaleFactor;
-                const scaledArtworkHeight = artworkHeight * artworkScaleFactor;
-                
-                const proofCanvas = document.createElement('canvas');
-                const proofCtx = proofCanvas.getContext('2d');
-                
-                proofCanvas.width = scaledArtworkWidth + (margin * 2);
-                proofCanvas.height = scaledArtworkHeight + topMargin + bottomMargin;
-                
-                proofCtx.fillStyle = 'white';
-                proofCtx.fillRect(0, 0, proofCanvas.width, proofCanvas.height);
-                
-                const artworkX = margin;
-                const artworkY = topMargin;
-                
-                proofCtx.fillStyle = 'grey';
-                proofCtx.fillRect(artworkX, artworkY, scaledArtworkWidth, scaledArtworkHeight);
-                
-                if (upImg) {
-                    const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
-                    const sW = upImg.width * scl;
-                    const sH = upImg.height * scl;
-                    
-                    const imgX = artworkX + ((artworkWidth - sW) / 2 + imgXOffset) * artworkScaleFactor;
-                    const imgY = artworkY + ((fH3 - sH) / 2 + imgYOffset) * artworkScaleFactor;
-                    
-                    proofCtx.save();
-                    proofCtx.beginPath();
-                    proofCtx.rect(artworkX, artworkY, scaledArtworkWidth, scaledArtworkHeight);
-                    proofCtx.clip();
-                    proofCtx.drawImage(upImg, imgX, imgY, sW * artworkScaleFactor, sH * artworkScaleFactor);
-                    proofCtx.restore();
-                }
-                
-                proofCtx.strokeStyle = 'black';
-                proofCtx.lineWidth = 2;
-                
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX - cropMarkOffset, artworkY);
-                proofCtx.lineTo(artworkX - cropMarkOffset - cropMarkLength, artworkY);
-                proofCtx.stroke();
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX, artworkY - cropMarkOffset);
-                proofCtx.lineTo(artworkX, artworkY - cropMarkOffset - cropMarkLength);
-                proofCtx.stroke();
-                
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX + scaledArtworkWidth + cropMarkOffset, artworkY);
-                proofCtx.lineTo(artworkX + scaledArtworkWidth + cropMarkOffset + cropMarkLength, artworkY);
-                proofCtx.stroke();
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX + scaledArtworkWidth, artworkY - cropMarkOffset);
-                proofCtx.lineTo(artworkX + scaledArtworkWidth, artworkY - cropMarkOffset - cropMarkLength);
-                proofCtx.stroke();
-                
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX - cropMarkOffset, artworkY + scaledArtworkHeight);
-                proofCtx.lineTo(artworkX - cropMarkOffset - cropMarkLength, artworkY + scaledArtworkHeight);
-                proofCtx.stroke();
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX, artworkY + scaledArtworkHeight + cropMarkOffset);
-                proofCtx.lineTo(artworkX, artworkY + scaledArtworkHeight + cropMarkOffset + cropMarkLength);
-                proofCtx.stroke();
-                
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX + scaledArtworkWidth + cropMarkOffset, artworkY + scaledArtworkHeight);
-                proofCtx.lineTo(artworkX + scaledArtworkWidth + cropMarkOffset + cropMarkLength, artworkY + scaledArtworkHeight);
-                proofCtx.stroke();
-                proofCtx.beginPath();
-                proofCtx.moveTo(artworkX + scaledArtworkWidth, artworkY + scaledArtworkHeight + cropMarkOffset);
-                proofCtx.lineTo(artworkX + scaledArtworkWidth, artworkY + scaledArtworkHeight + cropMarkOffset + cropMarkLength);
-                proofCtx.stroke();
-                
-                proofCtx.fillStyle = 'black';
-                proofCtx.font = 'bold 24px "Open Sans", Arial, sans-serif';
-                proofCtx.textAlign = 'center';
-                const proofHeading = fn ? `${fn} - ARTWORK PROOF` : 'ARTWORK PROOF';
-                proofCtx.fillText(proofHeading, proofCanvas.width / 2, 40);
-                
-                proofCtx.save();
-                proofCtx.translate(artworkX - 40, artworkY + scaledArtworkHeight / 2);
-                proofCtx.rotate(-Math.PI / 2);
-                proofCtx.font = '16px "Open Sans", Arial, sans-serif';
-                proofCtx.textAlign = 'center';
-                proofCtx.fillText(`${artworkHeight.toFixed(1)}mm`, 0, 0);
-                proofCtx.restore();
-                
-                proofCtx.font = '16px "Open Sans", Arial, sans-serif';
-                proofCtx.textAlign = 'center';
-                proofCtx.fillText(`${artworkWidth.toFixed(1)}mm`, artworkX + scaledArtworkWidth / 2, artworkY - 30);
-                
-                proofCtx.font = '14px "Open Sans", Arial, sans-serif';
-                proofCtx.textAlign = 'center';
-                const disclaimerY = artworkY + scaledArtworkHeight + 45;
-                proofCtx.fillText('This proof shows how your artwork will be cropped to fit the mechanism dimensions.', proofCanvas.width / 2, disclaimerY);
-                proofCtx.fillText('Please review the positioning and cropping carefully, then reply to confirm approval before production.', proofCanvas.width / 2, disclaimerY + 20);
-                
-                const jpgDataURL = proofCanvas.toDataURL('image/jpeg', 0.9);
-                const jpgFilename = `${fn} - ARTWORK PROOF.jpg`;
-                
-                const link = document.createElement('a');
-                link.href = jpgDataURL;
-                link.download = jpgFilename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            const featherW = dTile * 0.26;
+            const coverTile = document.createElement('canvas');
+            coverTile.width  = vertical ? ft : dTile;
+            coverTile.height = vertical ? dTile : ft;
+            const cctx = coverTile.getContext('2d');
+            renderTile(cctx, 0);
+            const mask = document.createElement('canvas');
+            mask.width = coverTile.width; mask.height = coverTile.height;
+            const mctx = mask.getContext('2d');
+            const steps = 64;
+            for (let s = 0; s <= steps; s++) {
+                const t = s / steps;
+                const fadeIn  = Math.min(t / (featherW / dTile), 1);
+                const fadeOut = Math.min((1 - t) / (featherW / dTile), 1);
+                const a = Math.min(fadeIn, fadeOut);
+                const smooth = a * a * (3 - 2 * a);
+                const px = dTile * t;
+                const npx = dTile * (s + 1) / steps;
+                mctx.fillStyle = `rgba(0,0,0,${smooth.toFixed(4)})`;
+                if (!vertical) mctx.fillRect(px, 0, npx - px + 0.5, ft);
+                else mctx.fillRect(0, px, ft, npx - px + 0.5);
             }
+            const maskedCover = document.createElement('canvas');
+            maskedCover.width = coverTile.width; maskedCover.height = coverTile.height;
+            const mcc = maskedCover.getContext('2d');
+            mcc.drawImage(coverTile, 0, 0);
+            mcc.globalCompositeOperation = 'destination-in';
+            mcc.drawImage(mask, 0, 0);
 
-            function handleImgUp(event) {
-                const loader = document.getElementById('loader');
-                loader.style.display = 'block';
-
-                const rdr = new FileReader();
-                rdr.onload = function(event) {
-                    upImg = new Image();
-                    upImg.onload = function() {
-                        imgXOffset = 0;
-                        imgYOffset = 0;
-                        loader.style.display = 'none';
-                        drawCnv();
-                    };
-                    upImg.src = event.target.result;
-                };
-                rdr.readAsDataURL(event.target.files[0]);
+            let seam = dTile * 1.09;
+            octx.globalAlpha = 0.56;
+            while (seam < length) {
+                const seamPos = seam - dTile / 2;
+                octx.drawImage(maskedCover, vertical ? 0 : seamPos, vertical ? seamPos : 0);
+                seam += dTile * 1.09;
             }
+            octx.globalAlpha = 1;
 
-            function rmvImg() {
-                upImg = null;
-                imgXOffset = 0;
-                imgYOffset = 0;
-                drawCnv();
-                const loader = document.getElementById('loader');
-                loader.style.display = 'none';
-            }
+            return oc;
+        }
 
-            function shiftImage(direction, vertical = false) {
-                if (!upImg) return;
+        function clip(points) {
+            tCtx.beginPath();
+            tCtx.moveTo(points[0][0], points[0][1]);
+            for (let i = 1; i < points.length; i++) tCtx.lineTo(points[i][0], points[i][1]);
+            tCtx.closePath();
+            tCtx.clip();
+        }
 
-                const cW = getNum('cW');
-                const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
-                const shiftAmount = 3 * 72 / 25.4;
+        const topStrip    = makeTiledStrip(w, false);
+        const leftStrip   = makeTiledStrip(h, true);
 
-                if (vertical) {
-                    if (direction === 'up' && imgYOffset > -((sH - getNum('fH3')) / 2)) {
-                        imgYOffset -= shiftAmount;
-                    } else if (direction === 'down' && imgYOffset < ((sH - getNum('fH3')) / 2)) {
-                        imgYOffset += shiftAmount;
-                    }
-                } else {
-                    if (direction === 'left' && imgXOffset > -(sW - cW) / 2) {
-                        imgXOffset -= shiftAmount;
-                    } else if (direction === 'right' && imgXOffset < (sW - cW) / 2) {
-                        imgXOffset += shiftAmount;
-                    }
-                }
+        const topPoly    = [[x,y],[x+w,y],[x+w-ft,y+ft],[x+ft,y+ft]];
+        const bottomPoly = [[x,y+h],[x+w,y+h],[x+w-ft,y+h-ft],[x+ft,y+h-ft]];
+        const leftPoly   = [[x,y],[x+ft,y+ft],[x+ft,y+h-ft],[x,y+h]];
+        const rightPoly  = [[x+w,y],[x+w-ft,y+ft],[x+w-ft,y+h-ft],[x+w,y+h]];
 
-                drawCnv();
-            }
+        tCtx.save(); clip(topPoly);
+        tCtx.drawImage(topStrip, x, y, w, ft);
+        tCtx.restore();
 
-            function updateArrowButtons(cW) {
-                if (!upImg) {
-                    document.getElementById('leftArrow').disabled = true;
-                    document.getElementById('rightArrow').disabled = true;
-                    document.getElementById('upArrow').disabled = true;
-                    document.getElementById('downArrow').disabled = true;
-                    return;
-                }
+        tCtx.save(); clip(bottomPoly);
+        tCtx.save();
+        tCtx.translate(x + w / 2, y + h - ft / 2);
+        tCtx.scale(1, -1);
+        tCtx.drawImage(topStrip, -w / 2, -ft / 2, w, ft);
+        tCtx.restore();
+        tCtx.restore();
 
-                const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
-                const sW = upImg.width * scl;
-                const sH = upImg.height * scl;
+        tCtx.save(); clip(leftPoly);
+        tCtx.drawImage(leftStrip, x, y, ft, h);
+        tCtx.restore();
 
-                document.getElementById('leftArrow').disabled = imgXOffset <= -(sW - cW) / 2;
-                document.getElementById('rightArrow').disabled = imgXOffset >= (sW - cW) / 2;
-                document.getElementById('upArrow').disabled = imgYOffset <= -((sH - getNum('fH3')) / 2);
-                document.getElementById('downArrow').disabled = imgYOffset >= ((sH - getNum('fH3')) / 2);
-            }
+        tCtx.save(); clip(rightPoly);
+        tCtx.save();
+        tCtx.translate(x + w - ft / 2, y + h / 2);
+        tCtx.scale(-1, 1);
+        tCtx.drawImage(leftStrip, -ft / 2, -h / 2, ft, h);
+        tCtx.restore();
+        tCtx.restore();
 
-            function startMoving(direction, vertical) {
-                if (!intervalId) {
-                    intervalId = setInterval(() => shiftImage(direction, vertical), 100);
-                }
-            }
+        tCtx.beginPath();
+        tCtx.moveTo(x, y); tCtx.lineTo(x + ft, y + ft);
+        tCtx.moveTo(x + w, y); tCtx.lineTo(x + w - ft, y + ft);
+        tCtx.moveTo(x, y + h); tCtx.lineTo(x + ft, y + h - ft);
+        tCtx.moveTo(x + w, y + h); tCtx.lineTo(x + w - ft, y + h - ft);
+        tCtx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+        tCtx.lineWidth = 1;
+        tCtx.stroke();
 
-            function stopMoving() {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
+        tCtx.beginPath();
+        tCtx.moveTo(x + ft, y + ft); tCtx.lineTo(x + w - ft, y + ft);
+        tCtx.lineTo(x + w - ft, y + h - ft); tCtx.lineTo(x + ft, y + h - ft);
+        tCtx.closePath();
+        tCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+        tCtx.lineWidth = 2;
+        tCtx.stroke();
+    }
 
-            function startDrag(event) {
-				if (!upImg) return;
-				isDragging = true;
+    const cnv = document.getElementById('cnv');
+    const ctx = cnv.getContext('2d');
+    let fn = '';
+    let upImg;
+    let imgXOffset = 0, imgYOffset = 0;
+    let intervalId = null;
+    let drawExtraLine = false;
+    let isRA7BTemplate = false;
+    let isDragging = false, dragStartX = 0, dragStartY = 0;
 
-				const rect = cnv.getBoundingClientRect();
-				if (event.type === 'mousedown') {
-					dragStartX = event.clientX - rect.left;
-					dragStartY = event.clientY - rect.top;
-				} else if (event.type === 'touchstart') {
-					dragStartX = event.touches[0].clientX - rect.left;
-					dragStartY = event.touches[0].clientY - rect.top;
-				}
+    function getNum(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
-				dragStartX -= imgXOffset;
-				dragStartY -= imgYOffset;
-			}
+    function setStatus(msg, colour) {
+        const el = document.getElementById('frameStatus');
+        el.textContent = msg;
+        el.style.color = colour || '#666';
+    }
 
-			function dragImage(event) {
-				if (!isDragging || !upImg) return;
+    function drawCnv() {
+        const container = document.querySelector('.canvas-container');
+        const cW = getNum('cW'), cH = getNum('cH');
+        const fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
+        const sf = container.clientWidth / cW;
+        cnv.width = cW * sf;
+        cnv.height = cH * sf;
+        ctx.clearRect(0, 0, cnv.width, cnv.height);
+        ctx.save();
+        ctx.scale(sf, sf);
+        ctx.fillStyle = 'grey';
+        ctx.fillRect(0, fH1 + fH2, cW, fH3);
+        if (upImg) drawImgPreview(upImg, cW, fH1 + fH2, fH3);
+        drawLines(cW, cH, fH1, fH2, fH3);
+        drawText(cW, cH, fH1);
+        if (drawExtraLine) {
+            ctx.beginPath(); ctx.moveTo(0, cH - 12); ctx.lineTo(cW, cH - 12);
+            ctx.strokeStyle = 'black'; ctx.lineWidth = 1; ctx.stroke();
+        }
+        ctx.restore();
+        updateArrows(cW);
+    }
 
-				const rect = cnv.getBoundingClientRect();
-				let clientX, clientY;
+    function drawImgPreview(img, cW, y, h) {
+        const scl = Math.max(cW / img.width, h / img.height);
+        const sW = img.width * scl, sH = img.height * scl;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, y, cW, h); ctx.clip();
+        ctx.drawImage(img, (cW - sW) / 2 + imgXOffset, y + (h - sH) / 2 + imgYOffset, sW, sH);
+        ctx.restore();
+    }
 
-				if (event.type === 'mousemove') {
-					clientX = event.clientX;
-					clientY = event.clientY;
-				} else if (event.type === 'touchmove') {
-					clientX = event.touches[0].clientX;
-					clientY = event.touches[0].clientY;
-				}
-
-				imgXOffset = (clientX - rect.left) - dragStartX;
-				imgYOffset = (clientY - rect.top) - dragStartY;
-
-				const cW = getNum('cW');
-				const fH3 = getNum('fH3');
-				const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
-				const sW = upImg.width * scl;
-				const sH = upImg.height * scl;
-
-				imgXOffset = Math.max(-(sW - cW) / 2, Math.min((sW - cW) / 2, imgXOffset));
-				imgYOffset = Math.max(-(sH - fH3) / 2, Math.min((sH - fH3) / 2, imgYOffset));
-
-				drawCnv();
-			}
-
-			function endDrag() {
-				isDragging = false;
-			}
-
-			cnv.addEventListener('mousedown', startDrag);
-			cnv.addEventListener('mousemove', dragImage);
-			cnv.addEventListener('mouseup', endDrag);
-			cnv.addEventListener('mouseleave', endDrag);
-
-			cnv.addEventListener('touchstart', (event) => {
-				event.preventDefault(); 
-				startDrag(event);
-			}, { passive: false });
-
-			cnv.addEventListener('touchmove', (event) => {
-				event.preventDefault(); 
-				dragImage(event);
-			}, { passive: false });
-
-			cnv.addEventListener('touchend', endDrag);
-			cnv.addEventListener('touchcancel', endDrag);
-
-            document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
-            document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
-            document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
-            document.getElementById('downArrow').addEventListener('click', () => shiftImage('down', true));
-
-            [document.getElementById('leftArrow'), document.getElementById('rightArrow'), document.getElementById('upArrow'), document.getElementById('downArrow')].forEach(button => {
-                button.addEventListener('mousedown', () => startMoving(button.id.replace('Arrow', ''), button.id === 'upArrow' || button.id === 'downArrow'));
-                button.addEventListener('mouseup', stopMoving);
-                button.addEventListener('mouseleave', stopMoving);
-            });
-
-            document.getElementById('fn').addEventListener('input', function() {
-                fn = this.value;
-                drawCnv();
-            });
-
-            ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => {
-                document.getElementById(id).addEventListener('input', drawCnv);
-            });
-
-			document.getElementById('jpgBtn').addEventListener('click', exportLowResJPG);
-			document.getElementById('pdfBtn').addEventListener('click', genPDF);
-
-            document.getElementById('imgLdr').addEventListener('change', handleImgUp);
-            document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
-            document.getElementById('rmvBtn').addEventListener('click', rmvImg);
-
-            window.addEventListener('resize', drawCnv);
-
-            drawCnv();
-
-            function setValues(cW, cH, fH1, fH2, fH3) {
-                document.getElementById('cW').value = cW;
-                document.getElementById('cH').value = cH;
-                document.getElementById('fH1').value = fH1;
-                document.getElementById('fH2').value = fH2;
-                document.getElementById('fH3').value = fH3;
-                drawCnv();
-            }
-
-            document.getElementById('ra5Btn').addEventListener('click', () => {
-                setValues(1296, 1825, 12, 44, 776);
-                drawExtraLine = false;
-                isRA7BTemplate = false;
-                drawCnv();
-            });
-
-            document.getElementById('ra6Btn').addEventListener('click', () => {
-                setValues(1516, 2100, 12, 37, 920);
-                drawExtraLine = false;
-                isRA7BTemplate = false;
-                drawCnv();
-            });
-
-            document.getElementById('ra7aBtn').addEventListener('click', () => {
-                setValues(1786, 1206, 12, 46.5, 1057);
-                drawExtraLine = true;
-                isRA7BTemplate = false;
-                drawCnv();
-            });
-
-            document.getElementById('ra7bBtn').addEventListener('click', () => {
-                setValues(1786, 1206, 12, 0, 0);
-                drawExtraLine = false;
-                isRA7BTemplate = true;
-                drawCnv();
-            });
+    function drawLines(cW, cH, fH1, fH2, fH3) {
+        ctx.strokeStyle = 'black'; ctx.lineWidth = 1;
+        ctx.strokeRect(0, 0, cW, cH);
+        [fH1, fH1 + fH2, fH1 + fH2 + fH3].forEach(h => {
+            ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(cW, h); ctx.stroke();
         });
-    </script>
+        const off = 1.5 * 72 / 25.4;
+        ctx.beginPath(); ctx.moveTo(off, 0); ctx.lineTo(off, cH); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cW - off, 0); ctx.lineTo(cW - off, cH); ctx.stroke();
+    }
+
+    function drawText(cW, cH, fH1) {
+        ctx.font = '2.5mm Arial'; ctx.fillStyle = 'black';
+        ctx.textAlign = 'center';
+        ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
+        ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
+        ctx.textAlign = 'left';
+        ctx.fillText(fn, 15, fH1 + 15);
+    }
+
+    async function exportLowResJPG() {
+        const cW = getNum('cW'), fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
+        const mountSize = getNum('mountSize');
+        const mountColour = document.getElementById('mountColour').value;
+        const selectedFrame = document.getElementById('frameSelect').value;
+        const frameWidthMm = FRAME_WIDTHS[selectedFrame] || 30;
+
+        const artworkWidth = cW - 10;
+        const artworkHeight = fH3;
+        const margin = 140, topMargin = 140, bottomMargin = 80;
+        const cropMarkLength = 20, cropMarkGap = 10;
+        const maxDim = 800;
+        const sf = Math.min(maxDim / artworkWidth, maxDim / artworkHeight);
+
+        const sAW = artworkWidth * sf;
+        const sAH = artworkHeight * sf;
+        const sMount = mountSize * sf;
+        const sFrame = frameWidthMm * sf;
+        const hasMount = mountSize > 0;
+        const hasFrame = selectedFrame !== 'none';
+
+        const totalExtra = (hasMount ? sMount * 2 : 0) + (hasFrame ? sFrame * 2 : 0);
+        const totalHeightMm = artworkHeight + mountSize * 2 + (hasFrame ? frameWidthMm * 2 : 0);
+        const totalWidthMm  = artworkWidth  + mountSize * 2 + (hasFrame ? frameWidthMm * 2 : 0);
+
+        const tickLen  = 7;
+        const guideGap = 14;
+        const fontSize = 14;
+        const leftPad  = 110;
+        const rightPad = (hasFrame || hasMount) ? 90 : 20;
+        const topPad   = 120;
+        const botPad   = (hasFrame || hasMount) ? 120 : 80;
+
+        const pc = document.createElement('canvas');
+        pc.width  = sAW + totalExtra + leftPad + rightPad;
+        pc.height = sAH + totalExtra + topPad + botPad;
+        const pCtx = pc.getContext('2d');
+
+        pCtx.fillStyle = '#f0f0f0';
+        pCtx.fillRect(0, 0, pc.width, pc.height);
+
+        const outerX      = (pc.width - (sAW + totalExtra)) / 2;
+        const outerY      = topPad;
+        const outerW      = sAW + totalExtra;
+        const outerH      = sAH + totalExtra;
+        const outerRight  = outerX + outerW;
+        const outerBottom = outerY + outerH;
+
+        const aX     = outerX + (hasFrame ? sFrame : 0) + (hasMount ? sMount : 0);
+        const aY     = outerY + (hasFrame ? sFrame : 0) + (hasMount ? sMount : 0);
+        const mountX = outerX + (hasFrame ? sFrame : 0);
+        const mountY = outerY + (hasFrame ? sFrame : 0);
+
+        if (hasMount) {
+            pCtx.fillStyle = mountColour;
+            pCtx.fillRect(mountX, mountY, sAW + sMount * 2, sAH + sMount * 2);
+        }
+
+        pCtx.fillStyle = 'grey';
+        pCtx.fillRect(aX, aY, sAW, sAH);
+
+        if (upImg) {
+            const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+            const sW = upImg.width * scl, sH = upImg.height * scl;
+            const ix = aX + ((artworkWidth - sW) / 2 + imgXOffset) * sf;
+            const iy = aY + ((fH3 - sH) / 2 + imgYOffset) * sf;
+            pCtx.save();
+            pCtx.beginPath(); pCtx.rect(aX, aY, sAW, sAH); pCtx.clip();
+            pCtx.drawImage(upImg, ix, iy, sW * sf, sH * sf);
+            pCtx.restore();
+        }
+
+        if (hasFrame) {
+            const solidColour = SOLID_FRAMES[selectedFrame];
+            if (solidColour) {
+                const x = outerX, y = outerY, w = outerW, h = outerH, ft = sFrame;
+                pCtx.fillStyle = solidColour;
+                pCtx.beginPath();
+                pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
+                pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath();
+                pCtx.moveTo(x, y + h); pCtx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath();
+                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft); pCtx.lineTo(x + ft, y + h - ft);
+                pCtx.lineTo(x, y + h); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath();
+                pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.lineTo(x + w, y + h); pCtx.closePath(); pCtx.fill();
+                pCtx.strokeStyle = selectedFrame === 'WHITE' ? '#ccc' : '#000';
+                pCtx.lineWidth = 0.5;
+                pCtx.beginPath();
+                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft);
+                pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
+                pCtx.moveTo(x, y + h); pCtx.lineTo(x + ft, y + h - ft);
+                pCtx.moveTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.stroke();
+                if (selectedFrame === 'WHITE') {
+                    pCtx.strokeStyle = '#888'; pCtx.lineWidth = 1;
+                    pCtx.strokeRect(x, y, w, h);
+                }
+                pCtx.lineWidth = 1.5;
+            } else {
+                let frameImg = frameImageCache[selectedFrame];
+                if (!frameImg) {
+                    try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
+                }
+                if (frameImg) {
+                    drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
+                } else {
+                    pCtx.fillStyle = '#aaa';
+                    pCtx.fillRect(outerX, outerY, outerW, sFrame);
+                    pCtx.fillRect(outerX, outerBottom - sFrame, outerW, sFrame);
+                    pCtx.fillRect(outerX, outerY, sFrame, outerH);
+                    pCtx.fillRect(outerRight - sFrame, outerY, sFrame, outerH);
+                }
+            }
+        }
+
+        const frameDisplayName = selectedFrame === 'BLACK' ? 'BLACK FRAME' : selectedFrame === 'WHITE' ? 'WHITE FRAME' : selectedFrame;
+        const frameLabel = hasFrame ? ` - ${frameDisplayName}` : '';
+        const headingText = fn ? `${fn} - ARTWORK PROOF${frameLabel}` : `ARTWORK PROOF${frameLabel}`;
+        pCtx.fillStyle = '#111';
+        pCtx.font = 'bold 22px Arial'; pCtx.textAlign = 'center';
+        const topLineY = outerY - guideGap - tickLen;
+        pCtx.fillText(headingText, pc.width / 2, (topLineY - 20) / 2 + 14);
+
+        pCtx.strokeStyle = '#444'; pCtx.lineWidth = 1.5; pCtx.fillStyle = '#444';
+
+        function htick(x, y) {
+            pCtx.beginPath(); pCtx.moveTo(x - tickLen, y); pCtx.lineTo(x + tickLen, y); pCtx.stroke();
+        }
+        function vtick(x, y) {
+            pCtx.beginPath(); pCtx.moveTo(x, y - tickLen); pCtx.lineTo(x, y + tickLen); pCtx.stroke();
+        }
+
+        function vSolidLabel(lineX, y1, y2, label) {
+            pCtx.beginPath(); pCtx.moveTo(lineX - tickLen, y1); pCtx.lineTo(lineX + tickLen, y1); pCtx.stroke();
+            pCtx.beginPath(); pCtx.moveTo(lineX - tickLen, y2); pCtx.lineTo(lineX + tickLen, y2); pCtx.stroke();
+            pCtx.beginPath(); pCtx.moveTo(lineX, y1); pCtx.lineTo(lineX, y2); pCtx.stroke();
+            const mid = (y1 + y2) / 2;
+            pCtx.font = `${fontSize}px Arial`; pCtx.fillStyle = '#444'; pCtx.textAlign = 'center';
+            pCtx.save();
+            pCtx.translate(lineX - guideGap, mid);
+            pCtx.rotate(-Math.PI / 2);
+            pCtx.fillText(label, 0, 5);
+            pCtx.restore();
+        }
+
+        const leftLineX = outerX - guideGap - tickLen;
+
+        if (hasFrame) {
+            vSolidLabel(leftLineX, outerY, outerY + sFrame, `${frameWidthMm.toFixed(1)}mm`);
+        }
+
+        vSolidLabel(leftLineX, aY, aY + sAH, `${artworkHeight.toFixed(1)}mm`);
+
+        if (hasMount) {
+            vSolidLabel(leftLineX, aY + sAH, aY + sAH + sMount, `${mountSize.toFixed(1)}mm`);
+        }
+
+        const rightLineX = outerRight + guideGap + tickLen;
+        if (hasFrame || hasMount) {
+            htick(rightLineX, outerY); htick(rightLineX, outerBottom);
+            pCtx.beginPath(); pCtx.moveTo(rightLineX, outerY); pCtx.lineTo(rightLineX, outerBottom); pCtx.stroke();
+            const rightMid = (outerY + outerBottom) / 2;
+            pCtx.font = `${fontSize}px Arial`; pCtx.fillStyle = '#444';
+            pCtx.save();
+            pCtx.translate(rightLineX + guideGap, rightMid);
+            pCtx.rotate(-Math.PI / 2);
+            pCtx.textAlign = 'center';
+            pCtx.fillText(`${totalHeightMm.toFixed(1)}mm`, 0, 5);
+            pCtx.restore();
+        }
+
+        vtick(aX, topLineY); vtick(aX + sAW, topLineY);
+        pCtx.beginPath(); pCtx.moveTo(aX, topLineY); pCtx.lineTo(aX + sAW, topLineY); pCtx.stroke();
+        pCtx.font = `${fontSize}px Arial`; pCtx.fillStyle = '#444'; pCtx.textAlign = 'center';
+        pCtx.fillText(`${artworkWidth.toFixed(1)}mm`, (aX + aX + sAW) / 2, topLineY - 6);
+
+        const botLineY = outerBottom + guideGap + tickLen;
+        if (hasFrame || hasMount) {
+            vtick(outerX, botLineY); vtick(outerRight, botLineY);
+            pCtx.beginPath(); pCtx.moveTo(outerX, botLineY); pCtx.lineTo(outerRight, botLineY); pCtx.stroke();
+            pCtx.font = `${fontSize}px Arial`; pCtx.fillStyle = '#444'; pCtx.textAlign = 'center';
+            pCtx.fillText(`${totalWidthMm.toFixed(1)}mm`, (outerX + outerRight) / 2, botLineY + guideGap + 5);
+        }
+
+        let disclaimerLine1, disclaimerLine2;
+        if (hasFrame && hasMount) {
+            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine2 = 'It is shown with a representative frame and mount. Please review carefully and confirm approval for your order to progress to production.';
+        } else if (hasFrame) {
+            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine2 = 'It is shown with a representative frame. Please review carefully and confirm approval for your order to progress to production.';
+        } else if (hasMount) {
+            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine2 = 'It is shown with a mount. Please review carefully and confirm approval for your order to progress to production.';
+        } else {
+            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine2 = 'Please review the positioning and cropping carefully, then confirm approval for your order to progress to production.';
+        }
+        const disclaimerAreaTop = botLineY + guideGap + 5 + fontSize + 10;
+        const disclaimerAreaBot = pc.height - 10;
+        const disclaimerMidY = (disclaimerAreaTop + disclaimerAreaBot) / 2;
+        pCtx.font = '12px Arial'; pCtx.textAlign = 'center'; pCtx.fillStyle = '#777';
+        pCtx.fillText(disclaimerLine1, pc.width / 2, disclaimerMidY - 8);
+        pCtx.fillText(disclaimerLine2, pc.width / 2, disclaimerMidY + 8);
+
+        const fileNameBase = hasFrame
+            ? (fn ? `${fn} - ARTWORK PROOF - ${frameDisplayName}` : `ARTWORK PROOF - ${frameDisplayName}`)
+            : (fn ? `${fn} - ARTWORK PROOF` : 'ARTWORK PROOF');
+        const link = document.createElement('a');
+        link.href = pc.toDataURL('image/jpeg', 0.9);
+        link.download = `${fileNameBase}.jpg`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function genPDF() {
+        const cW = getNum('cW'), cH = getNum('cH');
+        const fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
+        fn = document.getElementById('fn').value || 'default_filename';
+        const aFH2 = fH1 + fH2, aH = fH1 + fH2 + fH3;
+        const cWpt = cW * 72 / 25.4, cHpt = cH * 72 / 25.4;
+        const pdf = new jsPDF({ orientation: cW > cH ? 'landscape' : 'portrait', unit: 'pt', format: [cWpt, cHpt] });
+
+        if (!isRA7BTemplate && upImg) {
+            const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+            const sW = upImg.width * scl, sH = upImg.height * scl;
+            const imgX = (cWpt - sW * 72 / 25.4) / 2 + imgXOffset * 72 / 25.4;
+            const imgY = (aFH2 + fH3 / 2) * 72 / 25.4 - (sH * 72 / 25.4) / 2 + imgYOffset * 72 / 25.4;
+            const tc = document.createElement('canvas');
+            tc.width = upImg.width; tc.height = upImg.height;
+            tc.getContext('2d').drawImage(upImg, 0, 0);
+            pdf.addImage(tc.toDataURL('image/jpeg', 1.0), 'JPEG', imgX, imgY, sW * 72 / 25.4, sH * 72 / 25.4);
+        }
+
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, cWpt, aFH2 * 72 / 25.4, 'F');
+        pdf.rect(0, aH * 72 / 25.4, cWpt, (cH - aH) * 72 / 25.4, 'F');
+        pdf.setLineWidth(0.1 * 72 / 25.4);
+        pdf.rect(0, 0, cWpt, cHpt);
+        pdf.line(5 * 72 / 25.4, 0, 5 * 72 / 25.4, cHpt);
+        pdf.line((cW - 5) * 72 / 25.4, 0, (cW - 5) * 72 / 25.4, cHpt);
+        pdf.line(0, fH1 * 72 / 25.4, cWpt, fH1 * 72 / 25.4);
+        pdf.line(0, aFH2 * 72 / 25.4, cWpt, aFH2 * 72 / 25.4);
+        pdf.line(0, aH * 72 / 25.4, cWpt, aH * 72 / 25.4);
+        if (drawExtraLine) { pdf.setLineWidth(1); pdf.line(0, (cH - 12) * 72 / 25.4, cWpt, (cH - 12) * 72 / 25.4); }
+        pdf.setFont('Helvetica', 2 * 72 / 25.4);
+        pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+        pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
+        pdf.text(fn, 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4);
+        const meas = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
+        pdf.text(meas, cWpt - 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4, { align: 'right' });
+        pdf.save(`${fn}.pdf`);
+    }
+
+    function handleImgUp(event) {
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+        const rdr = new FileReader();
+        rdr.onload = e => {
+            upImg = new Image();
+            upImg.onload = () => { imgXOffset = 0; imgYOffset = 0; loader.style.display = 'none'; drawCnv(); };
+            upImg.src = e.target.result;
+        };
+        rdr.readAsDataURL(event.target.files[0]);
+    }
+
+    function rmvImg() {
+        upImg = null; imgXOffset = 0; imgYOffset = 0;
+        document.getElementById('loader').style.display = 'none';
+        drawCnv();
+    }
+
+    function shiftImage(direction, vertical = false) {
+        if (!upImg) return;
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+        const sW = upImg.width * scl, sH = upImg.height * scl;
+        const amt = 3 * 72 / 25.4;
+        if (vertical) {
+            if (direction === 'up' && imgYOffset > -((sH - fH3) / 2)) imgYOffset -= amt;
+            else if (direction === 'down' && imgYOffset < ((sH - fH3) / 2)) imgYOffset += amt;
+        } else {
+            if (direction === 'left' && imgXOffset > -(sW - cW) / 2) imgXOffset -= amt;
+            else if (direction === 'right' && imgXOffset < (sW - cW) / 2) imgXOffset += amt;
+        }
+        drawCnv();
+    }
+
+    function updateArrows(cW) {
+        const ids = ['leftArrow', 'rightArrow', 'upArrow', 'downArrow'];
+        if (!upImg) { ids.forEach(id => document.getElementById(id).disabled = true); return; }
+        const scl = Math.max(cW / upImg.width, getNum('fH3') / upImg.height);
+        const sW = upImg.width * scl, sH = upImg.height * scl;
+        document.getElementById('leftArrow').disabled  = imgXOffset <= -(sW - cW) / 2;
+        document.getElementById('rightArrow').disabled = imgXOffset >= (sW - cW) / 2;
+        document.getElementById('upArrow').disabled    = imgYOffset <= -((sH - getNum('fH3')) / 2);
+        document.getElementById('downArrow').disabled  = imgYOffset >= ((sH - getNum('fH3')) / 2);
+    }
+
+    function startMoving(dir, vert) { if (!intervalId) intervalId = setInterval(() => shiftImage(dir, vert), 100); }
+    function stopMoving() { clearInterval(intervalId); intervalId = null; }
+
+    function startDrag(e) {
+        if (!upImg) return;
+        isDragging = true;
+        const rect = cnv.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartX = cx - rect.left - imgXOffset;
+        dragStartY = cy - rect.top - imgYOffset;
+    }
+
+    function doDrag(e) {
+        if (!isDragging || !upImg) return;
+        const rect = cnv.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        const scl = Math.max(cW / upImg.width, fH3 / upImg.height);
+        const sW = upImg.width * scl, sH = upImg.height * scl;
+        imgXOffset = Math.max(-(sW - cW) / 2, Math.min((sW - cW) / 2, (cx - rect.left) - dragStartX));
+        imgYOffset = Math.max(-(sH - fH3) / 2, Math.min((sH - fH3) / 2, (cy - rect.top) - dragStartY));
+        drawCnv();
+    }
+
+    function endDrag() { isDragging = false; }
+
+    cnv.addEventListener('mousedown', startDrag);
+    cnv.addEventListener('mousemove', doDrag);
+    cnv.addEventListener('mouseup', endDrag);
+    cnv.addEventListener('mouseleave', endDrag);
+    cnv.addEventListener('touchstart', e => { e.preventDefault(); startDrag(e); }, { passive: false });
+    cnv.addEventListener('touchmove', e => { e.preventDefault(); doDrag(e); }, { passive: false });
+    cnv.addEventListener('touchend', endDrag);
+    cnv.addEventListener('touchcancel', endDrag);
+
+    document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
+    document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
+    document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
+    document.getElementById('downArrow').addEventListener('click', () => shiftImage('down', true));
+
+    ['leftArrow', 'rightArrow', 'upArrow', 'downArrow'].forEach(id => {
+        const btn = document.getElementById(id);
+        const dir = id.replace('Arrow', '');
+        const vert = id === 'upArrow' || id === 'downArrow';
+        btn.addEventListener('mousedown', () => startMoving(dir, vert));
+        btn.addEventListener('mouseup', stopMoving);
+        btn.addEventListener('mouseleave', stopMoving);
+    });
+
+    document.getElementById('fn').addEventListener('input', function() { fn = this.value; drawCnv(); });
+    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', drawCnv));
+
+    document.getElementById('frameSelect').addEventListener('change', async function() {
+        const key = this.value;
+        if (key === 'none') { setStatus(''); return; }
+        if (frameImageCache[key]) { setStatus('Frame ready.', '#2a7a2a'); return; }
+        try { await loadFrameImage(key); } catch (e) {}
+    });
+
+    document.getElementById('jpgBtn').addEventListener('click', exportLowResJPG);
+    document.getElementById('pdfBtn').addEventListener('click', genPDF);
+    document.getElementById('imgLdr').addEventListener('change', handleImgUp);
+    document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
+    document.getElementById('rmvBtn').addEventListener('click', rmvImg);
+    window.addEventListener('resize', drawCnv);
+
+    function setValues(cW, cH, fH1, fH2, fH3) {
+        ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, cH, fH1, fH2, fH3][i]);
+        drawCnv();
+    }
+
+    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); });
+    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; isRA7BTemplate = false; drawCnv(); });
+    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; isRA7BTemplate = false; drawCnv(); });
+    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; isRA7BTemplate = true; drawCnv(); });
+
+    drawCnv();
+    discoverFrames();
+});
+</script>
 </body>
 </html>
