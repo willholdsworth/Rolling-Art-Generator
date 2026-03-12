@@ -737,18 +737,18 @@ window.addEventListener('DOMContentLoaded', () => {
                 pCtx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
                 pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
+                pCtx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
                 pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
-                pctx.lineTo(x, y + h); pctx.closePath(); pCtx.fill();
+                pCtx.lineTo(x, y + h); pctx.closePath(); pCtx.fill();
                 pctx.beginPath();
                 pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
+                pctx.lineTo(x + w, y + h); pctx.closePath(); pCtx.fill();
                 
                 pCtx.strokeStyle = '#888888';
                 pCtx.lineWidth = 1;
-                pctx.beginPath();
+                pCtx.beginPath();
                 pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft);
                 pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
                 pctx.moveTo(x, y + h); pctx.lineTo(x + ft, y + h - ft);
@@ -758,20 +758,18 @@ window.addEventListener('DOMContentLoaded', () => {
                 pctx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
                 pCtx.lineWidth = 1.5;
             } else {
-                try {
-                    const frameImg = frameImageCache[selectedFrame];
-                    if (!frameImg) {
-                        try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
-                    }
-                    if (frameImg) {
-                        drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
-                    } else {
-                        pCtx.fillStyle = '#aaa';
-                        pCtx.fillRect(outerX, outerY, outerW, sFrame);
-                        pCtx.fillRect(outerX, outerBottom - sFrame, outerW, sFrame);
-                        pCtx.fillRect(outerX, outerY, sFrame, outerH);
-                        pCtx.fillRect(outerRight - sFrame, outerY, sFrame, outerH);
-                    }
+                let frameImg = frameImageCache[selectedFrame];
+                if (!frameImg) {
+                    try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
+                }
+                if (frameImg) {
+                    drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
+                } else {
+                    pCtx.fillStyle = '#aaa';
+                    pCtx.fillRect(outerX, outerY, outerW, sFrame);
+                    pCtx.fillRect(outerX, outerBottom - sFrame, outerW, sFrame);
+                    pCtx.fillRect(outerX, outerY, sFrame, outerH);
+                    pCtx.fillRect(outerRight - sFrame, outerY, sFrame, outerH);
                 }
             }
         }
