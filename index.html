@@ -199,6 +199,17 @@
                 </div>
             </div>
 
+            <div class="two-col" style="margin-top:8px;">
+                <div>
+                    <label for="targetW">OVERALL WIDTH (mm):</label>
+                    <input type="number" id="targetW" placeholder="If Known...">
+                </div>
+                <div>
+                    <label for="targetH">OVERALL HEIGHT (mm):</label>
+                    <input type="number" id="targetH" placeholder="If Known...">
+                </div>
+            </div>
+
             <div style="margin-top:8px;">
                 <label for="fn">FILE NAME:</label>
                 <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
@@ -220,8 +231,8 @@
             <button class="arrow-btn" id="rightArrow">&#8594;</button>
             <button class="arrow-btn" id="upArrow">&#8593;</button>
             <button class="arrow-btn" id="downArrow">&#8595;</button>
-            <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
             <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
+            <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
             <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button>
             <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
         </div>
@@ -638,7 +649,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const hasMount = mountSize > 0;
         const hasFrame = selectedFrame !== 'none';
 
-        const overlapX = hasMount ? 17 : 0;
+        let overlapX = hasMount ? 17 : 0;
         let overlapY = 0;
         
         if (hasMount) {
@@ -647,7 +658,20 @@ window.addEventListener('DOMContentLoaded', () => {
             else if (activeTemplate === 'RA7' || activeTemplate === 'RA7B') overlapY = 20;
             else overlapY = 19.5;
         }
-        
+
+        const tW = getNum('targetW');
+        const tH = getNum('targetH');
+        const totalEdge = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSize : 0);
+
+        if (tW > 0 && (hasMount || hasFrame)) {
+            const visW = tW - (totalEdge * 2);
+            overlapX = (artworkWidth - visW) / 2;
+        }
+        if (tH > 0 && (hasMount || hasFrame)) {
+            const visH = tH - (totalEdge * 2);
+            overlapY = (artworkHeight - visH) / 2;
+        }
+
         const actualOverlapX = hasMount ? Math.min(mountSize, overlapX) : 0;
         const actualOverlapY = hasMount ? Math.min(mountSize, overlapY) : 0;
 
@@ -746,28 +770,28 @@ window.addEventListener('DOMContentLoaded', () => {
                 const x = outerX, y = outerY, w = outerW, h = outerH, ft = sFrame;
                 pCtx.fillStyle = solidColour;
                 pCtx.beginPath();
-                pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
+                pCtx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
                 pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pCtx.moveTo(x, y + h); pCtx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
                 pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pCtx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
-                pctx.lineTo(x, y + h); pctx.closePath(); pCtx.fill();
-                pCtx.beginPath();
-                pCtx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
-                pCtx.lineTo(x + w, y + h); pctx.closePath(); pCtx.fill();
+                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
+                pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
+                pctx.beginPath();
+                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
+                pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
                 
                 pCtx.strokeStyle = '#888888';
                 pCtx.lineWidth = 1;
                 pCtx.beginPath();
-                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft);
-                pCtx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
-                pCtx.moveTo(x, y + h); pCtx.lineTo(x + ft, y + h - ft);
-                pCtx.moveTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
-                pCtx.stroke();
-                pCtx.strokeRect(x, y, w, h);
-                pCtx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
+                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft);
+                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
+                pctx.moveTo(x, y + h); pctx.lineTo(x + ft, y + h - ft);
+                pctx.moveTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pctx.stroke();
+                pctx.strokeRect(x, y, w, h);
+                pctx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
                 pCtx.lineWidth = 1.5;
             } else {
                 try {
@@ -1027,6 +1051,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); }));
     document.getElementById('mountSize').addEventListener('input', updateFramePreview);
     document.getElementById('mountColour').addEventListener('change', updateFramePreview);
+    ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', updateFramePreview));
 
     document.getElementById('frameSelect').addEventListener('change', async function() {
         const key = this.value;
@@ -1077,7 +1102,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const artworkHeight = fH3;
         const frameWidthMm = hasFrame ? (FRAME_WIDTHS[selectedFrame] || 80) : 0;
 
-        const overlapX = hasMount ? 17 : 0;
+        let overlapX = hasMount ? 17 : 0;
         let overlapY = 0;
         
         if (hasMount) {
@@ -1085,6 +1110,19 @@ window.addEventListener('DOMContentLoaded', () => {
             else if (activeTemplate === 'RA6') overlapY = 26.5;
             else if (activeTemplate === 'RA7' || activeTemplate === 'RA7B') overlapY = 20;
             else overlapY = 19.5;
+        }
+
+        const tW = getNum('targetW');
+        const tH = getNum('targetH');
+        const totalEdge = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSizeMm : 0);
+
+        if (tW > 0 && (hasMount || hasFrame)) {
+            const visW = tW - (totalEdge * 2);
+            overlapX = (artworkWidth - visW) / 2;
+        }
+        if (tH > 0 && (hasMount || hasFrame)) {
+            const visH = tH - (totalEdge * 2);
+            overlapY = (artworkHeight - visH) / 2;
         }
 
         const actualOverlapX = hasMount ? Math.min(mountSizeMm, overlapX) : 0;
@@ -1141,13 +1179,10 @@ window.addEventListener('DOMContentLoaded', () => {
             const mountColour = document.getElementById('mountColour').value;
             const mc = mountColour === 'white' ? '#f5f5f5' : mountColour === 'black' ? '#111' : mountColour;
             pctx.fillStyle = mc;
-            const mW = outerW - (hasFrame ? sFrame * 2 : 0);
-            const mH = outerH - (hasFrame ? sFrame * 2 : 0);
-            
-            pctx.fillRect(mountX, mountY, mW, sMount);
-            pctx.fillRect(mountX, mountY + mH - sMount, mW, sMount);
-            pctx.fillRect(mountX, mountY, sMount, mH);
-            pctx.fillRect(mountX + mW - sMount, mountY, sMount, mH);
+            pctx.fillRect(mountX, mountY, outerW - sFrame * 2, sMount);
+            pctx.fillRect(mountX, mountY + outerH - sFrame * 2 - sMount, outerW - sFrame * 2, sMount);
+            pctx.fillRect(mountX, mountY, sMount, outerH - sFrame * 2);
+            pctx.fillRect(mountX + outerW - sFrame * 2 - sMount, mountY, sMount, outerH - sFrame * 2);
 
             const bSize = Math.min(6 * sf, sMount);
             pctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
@@ -1207,6 +1242,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function setValues(cW, cH, fH1, fH2, fH3) {
         ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, cH, fH1, fH2, fH3][i]);
+        document.getElementById('targetW').value = '';
+        document.getElementById('targetH').value = '';
         drawCnv();
     }
 
