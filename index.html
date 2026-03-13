@@ -96,7 +96,7 @@
         .red-btn { background: #FF5733; color: #ffffff; }
         .red-btn:hover:not(:disabled) { background: #303030; }
         .canvas-container { text-align: center; border: 1px solid #ddd; background-color: #fff; width: 100%; }
-        canvas { touch-action: none; user-select: none; }
+        #cnv { touch-action: none; user-select: none; }
         .loader { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 1rem; height: 1rem; animation: spin 2s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .frame-preview-section { background: #ffffff; border: none; padding: 20px 0 0 0; width: 100%; text-align: center; }
@@ -176,8 +176,8 @@
                 <div>
                     <label for="mountColour">MOUNT COLOUR:</label>
                     <select id="mountColour">
-                        <option value="white">White</option>
                         <option value="black">Black</option>
+                        <option value="white">White</option>
                         <option value="#d4c5a0">Natural MDF</option>
                         <option value="#8B7355">Oak</option>
                     </select>
@@ -220,8 +220,8 @@
             <button class="arrow-btn" id="rightArrow">&#8594;</button>
             <button class="arrow-btn" id="upArrow">&#8593;</button>
             <button class="arrow-btn" id="downArrow">&#8595;</button>
-            <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
             <button class="secondary-btn" id="upBtn"><i class="fas fa-plus"></i> Add Image</button>
+            <button class="secondary-btn" id="rmvBtn"><i class="fas fa-trash"></i> Remove Image</button>
             <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button>
             <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
         </div>
@@ -229,7 +229,7 @@
         <div id="loader" class="loader"></div>
         
         <div class="frame-preview-section" id="framePreviewSection" style="display:none;">
-            <h2>IMAGE PREVIEW</h2>
+            <h2>ARTWORK PREVIEW</h2>
             <canvas id="framePreviewCnv"></canvas>
         </div>
 
@@ -702,7 +702,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const sVisW = visW_mm * sf;
         const sVisH = visH_mm * sf;
 
-        pCtx.fillStyle = 'grey';
+        pCtx.fillStyle = '#808080';
         pCtx.fillRect(aX, aY, sAW, sAH);
 
         if (upImg) {
@@ -726,6 +726,18 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.fillRect(mountX, mountY + mH - sMount, mW, sMount);
             pCtx.fillRect(mountX, mountY, sMount, mH);
             pCtx.fillRect(mountX + mW - sMount, mountY, sMount, mH);
+
+            const bSize = Math.min(6 * sf, sMount);
+            pCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            pCtx.beginPath(); pCtx.moveTo(innerX, innerY); pCtx.lineTo(innerX + sVisW, innerY); pCtx.lineTo(innerX + sVisW + bSize, innerY - bSize); pCtx.lineTo(innerX - bSize, innerY - bSize); pCtx.fill();
+            pCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            pCtx.beginPath(); pCtx.moveTo(innerX, innerY + sVisH); pCtx.lineTo(innerX + sVisW, innerY + sVisH); pCtx.lineTo(innerX + sVisW + bSize, innerY + sVisH + bSize); pCtx.lineTo(innerX - bSize, innerY + sVisH + bSize); pCtx.fill();
+            pCtx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            pCtx.beginPath(); pCtx.moveTo(innerX, innerY); pCtx.lineTo(innerX, innerY + sVisH); pCtx.lineTo(innerX - bSize, innerY + sVisH + bSize); pCtx.lineTo(innerX - bSize, innerY - bSize); pCtx.fill();
+            pCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            pCtx.beginPath(); pCtx.moveTo(innerX + sVisW, innerY); pCtx.lineTo(innerX + sVisW, innerY + sVisH); pCtx.lineTo(innerX + sVisW + bSize, innerY + sVisH + bSize); pCtx.lineTo(innerX + sVisW + bSize, innerY - bSize); pCtx.fill();
+            pCtx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; pCtx.lineWidth = 1; pCtx.strokeRect(innerX, innerY, sVisW, sVisH);
+            pCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)'; pCtx.strokeRect(innerX - bSize, innerY - bSize, sVisW + bSize * 2, sVisH + bSize * 2);
         }
 
         if (hasFrame) {
@@ -734,43 +746,45 @@ window.addEventListener('DOMContentLoaded', () => {
                 const x = outerX, y = outerY, w = outerW, h = outerH, ft = sFrame;
                 pCtx.fillStyle = solidColour;
                 pCtx.beginPath();
-                pCtx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
+                pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
                 pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pCtx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pCtx.moveTo(x, y + h); pCtx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
                 pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
-                pCtx.lineTo(x, y + h); pctx.closePath(); pCtx.fill();
-                pctx.beginPath();
-                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.lineTo(x + w, y + h); pctx.closePath(); pCtx.fill();
+                pCtx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
+                pctx.lineTo(x, y + h); pctx.closePath(); pCtx.fill();
+                pCtx.beginPath();
+                pCtx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
+                pCtx.lineTo(x + w, y + h); pctx.closePath(); pCtx.fill();
                 
                 pCtx.strokeStyle = '#888888';
                 pCtx.lineWidth = 1;
                 pCtx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft);
-                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
-                pctx.moveTo(x, y + h); pctx.lineTo(x + ft, y + h - ft);
-                pctx.moveTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.stroke();
-                pctx.strokeRect(x, y, w, h);
-                pctx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
+                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft);
+                pCtx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
+                pCtx.moveTo(x, y + h); pCtx.lineTo(x + ft, y + h - ft);
+                pCtx.moveTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pCtx.stroke();
+                pCtx.strokeRect(x, y, w, h);
+                pCtx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
                 pCtx.lineWidth = 1.5;
             } else {
-                let frameImg = frameImageCache[selectedFrame];
-                if (!frameImg) {
-                    try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
-                }
-                if (frameImg) {
-                    drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
-                } else {
-                    pCtx.fillStyle = '#aaa';
-                    pCtx.fillRect(outerX, outerY, outerW, sFrame);
-                    pCtx.fillRect(outerX, outerBottom - sFrame, outerW, sFrame);
-                    pCtx.fillRect(outerX, outerY, sFrame, outerH);
-                    pCtx.fillRect(outerRight - sFrame, outerY, sFrame, outerH);
-                }
+                try {
+                    const frameImg = frameImageCache[selectedFrame];
+                    if (!frameImg) {
+                        try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
+                    }
+                    if (frameImg) {
+                        drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
+                    } else {
+                        pCtx.fillStyle = '#aaa';
+                        pCtx.fillRect(outerX, outerY, outerW, sFrame);
+                        pCtx.fillRect(outerX, outerBottom - sFrame, outerW, sFrame);
+                        pCtx.fillRect(outerX, outerY, sFrame, outerH);
+                        pCtx.fillRect(outerRight - sFrame, outerY, sFrame, outerH);
+                    }
+                } catch(e) {}
             }
         }
 
@@ -1073,8 +1087,14 @@ window.addEventListener('DOMContentLoaded', () => {
             else overlapY = 19.5;
         }
 
+        const actualOverlapX = hasMount ? Math.min(mountSizeMm, overlapX) : 0;
+        const actualOverlapY = hasMount ? Math.min(mountSizeMm, overlapY) : 0;
+
         const mountExtX = hasMount ? Math.max(0, mountSizeMm - overlapX) : 0;
         const mountExtY = hasMount ? Math.max(0, mountSizeMm - overlapY) : 0;
+
+        const visW_mm = artworkWidth - actualOverlapX * 2;
+        const visH_mm = artworkHeight - actualOverlapY * 2;
 
         const maxW = section.clientWidth || 400;
         const totalWmm = artworkWidth + mountExtX * 2 + frameWidthMm * 2;
@@ -1094,18 +1114,26 @@ window.addEventListener('DOMContentLoaded', () => {
         const sAH = artworkHeight * sf;
         const outerX = 0, outerY = 0;
         const outerW = previewCnv.width, outerH = previewCnv.height;
-        const innerX = sFrame + sMountExtX;
-        const innerY = sFrame + sMountExtY;
+        
+        const aX = outerX + sFrame + sMountExtX;
+        const aY = outerY + sFrame + sMountExtY;
+        const mountX = outerX + sFrame;
+        const mountY = outerY + sFrame;
+
+        const innerX = mountX + (hasMount ? sMount : 0);
+        const innerY = mountY + (hasMount ? sMount : 0);
+        const sVisW = visW_mm * sf;
+        const sVisH = visH_mm * sf;
 
         pctx.fillStyle = '#808080';
-        pctx.fillRect(innerX, innerY, sAW, sAH);
+        pctx.fillRect(aX, aY, sAW, sAH);
 
         if (upImg) {
             const scl = Math.max(sAW / upImg.width, sAH / upImg.height);
             const dW = upImg.width * scl, dH = upImg.height * scl;
             pctx.save();
-            pctx.beginPath(); pctx.rect(innerX, innerY, sAW, sAH); pctx.clip();
-            pctx.drawImage(upImg, innerX + (sAW - dW) / 2 + imgXOffset * sf, innerY + (sAH - dH) / 2 + imgYOffset * sf, dW, dH);
+            pctx.beginPath(); pctx.rect(aX, aY, sAW, sAH); pctx.clip();
+            pctx.drawImage(upImg, aX + (sAW - dW) / 2 + imgXOffset * sf, aY + (sAH - dH) / 2 + imgYOffset * sf, dW, dH);
             pctx.restore();
         }
 
@@ -1113,10 +1141,25 @@ window.addEventListener('DOMContentLoaded', () => {
             const mountColour = document.getElementById('mountColour').value;
             const mc = mountColour === 'white' ? '#f5f5f5' : mountColour === 'black' ? '#111' : mountColour;
             pctx.fillStyle = mc;
-            pctx.fillRect(sFrame, sFrame, outerW - sFrame * 2, sMount);
-            pctx.fillRect(sFrame, outerH - sFrame - sMount, outerW - sFrame * 2, sMount);
-            pctx.fillRect(sFrame, sFrame, sMount, outerH - sFrame * 2);
-            pctx.fillRect(outerW - sFrame - sMount, sFrame, sMount, outerH - sFrame * 2);
+            const mW = outerW - (hasFrame ? sFrame * 2 : 0);
+            const mH = outerH - (hasFrame ? sFrame * 2 : 0);
+            
+            pctx.fillRect(mountX, mountY, mW, sMount);
+            pctx.fillRect(mountX, mountY + mH - sMount, mW, sMount);
+            pctx.fillRect(mountX, mountY, sMount, mH);
+            pctx.fillRect(mountX + mW - sMount, mountY, sMount, mH);
+
+            const bSize = Math.min(6 * sf, sMount);
+            pctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            pctx.beginPath(); pctx.moveTo(innerX, innerY); pctx.lineTo(innerX + sVisW, innerY); pctx.lineTo(innerX + sVisW + bSize, innerY - bSize); pctx.lineTo(innerX - bSize, innerY - bSize); pctx.fill();
+            pctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            pctx.beginPath(); pctx.moveTo(innerX, innerY + sVisH); pctx.lineTo(innerX + sVisW, innerY + sVisH); pctx.lineTo(innerX + sVisW + bSize, innerY + sVisH + bSize); pctx.lineTo(innerX - bSize, innerY + sVisH + bSize); pctx.fill();
+            pctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            pctx.beginPath(); pctx.moveTo(innerX, innerY); pctx.lineTo(innerX, innerY + sVisH); pctx.lineTo(innerX - bSize, innerY + sVisH + bSize); pctx.lineTo(innerX - bSize, innerY - bSize); pctx.fill();
+            pctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            pctx.beginPath(); pctx.moveTo(innerX + sVisW, innerY); pctx.lineTo(innerX + sVisW, innerY + sVisH); pctx.lineTo(innerX + sVisW + bSize, innerY + sVisH + bSize); pctx.lineTo(innerX + sVisW + bSize, innerY - bSize); pctx.fill();
+            pctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; pctx.lineWidth = 1; pctx.strokeRect(innerX, innerY, sVisW, sVisH);
+            pctx.strokeStyle = 'rgba(0, 0, 0, 0.1)'; pctx.strokeRect(innerX - bSize, innerY - bSize, sVisW + bSize * 2, sVisH + bSize * 2);
         }
 
         if (hasFrame) {
