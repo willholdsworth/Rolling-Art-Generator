@@ -260,7 +260,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93 };
     const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5' };
-    const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 54.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5 };
+    const FRAME_CORNER_COLORS = { FR3: '#d0d0d0' };
+    const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 15.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5 };
 
     let FRAMES = {};
     const frameImageCache = {};
@@ -409,7 +410,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function drawFrameAroundRect(tCtx, img, frameWidthMm, artworkScaleFactor, x, y, w, h) {
+    function drawFrameAroundRect(tCtx, img, frameWidthMm, artworkScaleFactor, x, y, w, h, frameKey) {
         const ft = Math.round(frameWidthMm * artworkScaleFactor);
         if (!img || ft <= 0) return;
 
@@ -544,7 +545,7 @@ window.addEventListener('DOMContentLoaded', () => {
         tCtx.moveTo(x + w, y); tCtx.lineTo(x + w - ft, y + ft);
         tCtx.moveTo(x, y + h); tCtx.lineTo(x + ft, y + h - ft);
         tCtx.moveTo(x + w, y + h); tCtx.lineTo(x + w - ft, y + h - ft);
-        tCtx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+        tCtx.strokeStyle = frameKey === 'FR3' ? 'rgba(200, 200, 200, 0.3)' : 'rgba(0, 0, 0, 0.4)';
         tCtx.lineWidth = 1;
         tCtx.stroke();
 
@@ -552,7 +553,7 @@ window.addEventListener('DOMContentLoaded', () => {
         tCtx.moveTo(x + ft, y + ft); tCtx.lineTo(x + w - ft, y + ft);
         tCtx.lineTo(x + w - ft, y + h - ft); tCtx.lineTo(x + ft, y + h - ft);
         tCtx.closePath();
-        tCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+        tCtx.strokeStyle = frameKey === 'FR3' ? 'rgba(200, 200, 200, 0.4)' : 'rgba(0, 0, 0, 0.5)';
         tCtx.lineWidth = 2;
         tCtx.stroke();
     }
@@ -800,7 +801,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
                     }
                     if (frameImg) {
-                        drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
+                        drawFrameAroundRect(pCtx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH, selectedFrame);
                     } else {
                         pCtx.fillStyle = '#aaa';
                         pCtx.fillRect(outerX, outerY, outerW, sFrame);
@@ -1227,7 +1228,7 @@ window.addEventListener('DOMContentLoaded', () => {
             } else {
                 try {
                     const frameImg = frameImageCache[selectedFrame] || await loadFrameImage(selectedFrame);
-                    drawFrameAroundRect(pctx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH);
+                    drawFrameAroundRect(pctx, frameImg, frameWidthMm, sf, outerX, outerY, outerW, outerH, selectedFrame);
                 } catch(e) {}
             }
         }
