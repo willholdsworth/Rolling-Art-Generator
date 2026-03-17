@@ -258,7 +258,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const GITHUB_RAW = 'https://raw.githubusercontent.com/willholdsworth/Rolling-Art-Generator/main/images/';
     const GITHUB_API = 'https://api.github.com/repos/willholdsworth/Rolling-Art-Generator/contents/images';
 
-    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 70, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93 };
+    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93 };
     const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5' };
     const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 54.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5 };
 
@@ -770,28 +770,28 @@ window.addEventListener('DOMContentLoaded', () => {
                 const x = outerX, y = outerY, w = outerW, h = outerH, ft = sFrame;
                 pCtx.fillStyle = solidColour;
                 pCtx.beginPath();
-                pCtx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
+                pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
                 pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pCtx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
+                pCtx.moveTo(x, y + h); pCtx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
                 pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
                 pCtx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
-                pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
-                pctx.beginPath();
-                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
+                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft); pCtx.lineTo(x + ft, y + h - ft);
+                pCtx.lineTo(x, y + h); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath();
+                pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.lineTo(x + w, y + h); pCtx.closePath(); pCtx.fill();
                 
                 pCtx.strokeStyle = '#888888';
                 pCtx.lineWidth = 1;
                 pCtx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft);
-                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
-                pctx.moveTo(x, y + h); pctx.lineTo(x + ft, y + h - ft);
-                pctx.moveTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.stroke();
-                pctx.strokeRect(x, y, w, h);
-                pctx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
+                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft);
+                pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
+                pCtx.moveTo(x, y + h); pCtx.lineTo(x + ft, y + h - ft);
+                pCtx.moveTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
+                pCtx.stroke();
+                pCtx.strokeRect(x, y, w, h);
+                pCtx.strokeRect(x + ft, y + ft, w - ft * 2, h - ft * 2);
                 pCtx.lineWidth = 1.5;
             } else {
                 try {
