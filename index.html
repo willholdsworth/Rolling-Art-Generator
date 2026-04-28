@@ -258,10 +258,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const GITHUB_RAW = 'https://raw.githubusercontent.com/willholdsworth/Rolling-Art-Generator/main/images/';
     const GITHUB_API = 'https://api.github.com/repos/willholdsworth/Rolling-Art-Generator/contents/images';
 
-    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93 };
+    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93, LANESBOROUGH: 99 };
     const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5' };
     const FRAME_CORNER_COLORS = { FR3: '#d0d0d0' };
-    const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 15.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5 };
+    const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 15.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5, LANESBOROUGH: 25.5 };
 
     let FRAMES = {};
     const frameImageCache = {};
@@ -295,11 +295,17 @@ window.addEventListener('DOMContentLoaded', () => {
                 sel.appendChild(opt);
             });
 
+            FRAMES['LANESBOROUGH'] = { url: GITHUB_RAW + 'LANESBOROUGH.jpg' };
+            const lanesboroughOpt = document.createElement('option');
+            lanesboroughOpt.value = 'LANESBOROUGH'; lanesboroughOpt.textContent = 'LANESBOROUGH';
+            sel.appendChild(lanesboroughOpt);
+
             const allOptions = [
                 { value: 'none', label: 'No Frame', url: null },
                 { value: 'BLACK', label: 'Black Frame', url: null },
                 { value: 'WHITE', label: 'White Frame', url: null },
-                ...frameFiles.map(f => ({ value: f.name.replace(/\.jpg$/i, '').toUpperCase(), label: f.name.replace(/\.jpg$/i, '').toUpperCase(), url: GITHUB_RAW + f.name }))
+                ...frameFiles.map(f => ({ value: f.name.replace(/\.jpg$/i, '').toUpperCase(), label: f.name.replace(/\.jpg$/i, '').toUpperCase(), url: GITHUB_RAW + f.name })),
+                { value: 'LANESBOROUGH', label: 'LANESBOROUGH', url: GITHUB_RAW + 'LANESBOROUGH.jpg' }
             ];
 
             dropdown.innerHTML = '';
