@@ -1114,14 +1114,14 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('downArrow').addEventListener('click', () => shiftImage('down', true));
 
     document.getElementById('zoomOutBtn').addEventListener('click', () => {
-        imgZoomOffset -= 5;
+        imgZoomOffset -= 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
         if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3); }
         drawCnv(); updateFramePreview();
     });
     document.getElementById('zoomInBtn').addEventListener('click', () => {
-        imgZoomOffset += 5;
+        imgZoomOffset += 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
         if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3); }
