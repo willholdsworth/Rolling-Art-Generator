@@ -425,14 +425,16 @@ window.addEventListener('DOMContentLoaded', () => {
         const IMG_W = 100, IMG_H = 150, IMG_MM = 100;
         const mmToScale = artworkScaleFactor;
         const dTile = (IMG_MM * mmToScale) * (IMG_H / IMG_H);
-        const stride = dTile * 0.6;
-        const featherW = dTile * 0.4;
+        const stride = dTile * 1.08;
+        const featherW = dTile * 0.35;
 
         function makeTiledStrip(length, vertical) {
             const oc = document.createElement('canvas');
             oc.width  = vertical ? ft : length;
             oc.height = vertical ? length : ft;
             const octx = oc.getContext('2d');
+            octx.imageSmoothingEnabled = true;
+            octx.imageSmoothingQuality = 'high';
 
             function renderTile(ctx, pos) {
                 ctx.save();
@@ -450,6 +452,8 @@ window.addEventListener('DOMContentLoaded', () => {
             const bg = document.createElement('canvas');
             bg.width = oc.width; bg.height = oc.height;
             const bgctx = bg.getContext('2d');
+            bgctx.imageSmoothingEnabled = true;
+            bgctx.imageSmoothingQuality = 'high';
             bgctx.save();
             if (!vertical) {
                 bgctx.translate(length / 2, ft / 2);
@@ -464,14 +468,16 @@ window.addEventListener('DOMContentLoaded', () => {
             let pos = 0;
             while (pos < length) {
                 renderTile(octx, pos);
-                pos += dTile * 1.09;
+                pos += dTile * 1.08;
             }
 
-            const featherW = dTile * 0.26;
+            const featherW = dTile * 0.35;
             const coverTile = document.createElement('canvas');
             coverTile.width  = vertical ? ft : dTile;
             coverTile.height = vertical ? dTile : ft;
             const cctx = coverTile.getContext('2d');
+            cctx.imageSmoothingEnabled = true;
+            cctx.imageSmoothingQuality = 'high';
             renderTile(cctx, 0);
             const mask = document.createElement('canvas');
             mask.width = coverTile.width; mask.height = coverTile.height;
@@ -492,16 +498,18 @@ window.addEventListener('DOMContentLoaded', () => {
             const maskedCover = document.createElement('canvas');
             maskedCover.width = coverTile.width; maskedCover.height = coverTile.height;
             const mcc = maskedCover.getContext('2d');
+            mcc.imageSmoothingEnabled = true;
+            mcc.imageSmoothingQuality = 'high';
             mcc.drawImage(coverTile, 0, 0);
             mcc.globalCompositeOperation = 'destination-in';
             mcc.drawImage(mask, 0, 0);
 
-            let seam = dTile * 1.09;
-            octx.globalAlpha = 0.56;
+            let seam = dTile * 1.08;
+            octx.globalAlpha = 1.0;
             while (seam < length) {
                 const seamPos = seam - dTile / 2;
                 octx.drawImage(maskedCover, vertical ? 0 : seamPos, vertical ? seamPos : 0);
-                seam += dTile * 1.09;
+                seam += dTile * 1.08;
             }
             octx.globalAlpha = 1;
 
@@ -605,10 +613,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
         const sf = container.clientWidth / cW;
         const tw = Math.round(cW * sf), th = Math.round(cH * sf);
-        if (cnv.width !== tw || cnv.height !== th) { cnv.width = tw; cnv.height = th; }
+        const dpr = window.devicePixelRatio || 1;
+        if (cnv.width !== tw * dpr || cnv.height !== th * dpr) { cnv.width = tw * dpr; cnv.height = th * dpr; cnv.style.width = tw + 'px'; cnv.style.height = th + 'px'; }
         ctx.clearRect(0, 0, cnv.width, cnv.height);
         ctx.save();
-        ctx.scale(sf, sf);
+        ctx.scale(sf * dpr, sf * dpr);
         const aW = cW - SIDE_MARGIN_MM * 2;
         ctx.fillStyle = 'grey';
         ctx.fillRect(SIDE_MARGIN_MM, fH1 + fH2, aW, fH3);
@@ -730,9 +739,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const botPad   = (hasFrame || hasMount) ? 120 : 80;
 
         const pc = document.createElement('canvas');
-        pc.width  = sAW + totalExtraX + leftPad + rightPad;
-        pc.height = sAH + totalExtraY + topPad + botPad;
+        pc.width  = Math.round(sAW + totalExtraX + leftPad + rightPad);
+        pc.height = Math.round(sAH + totalExtraY + topPad + botPad);
         const pCtx = pc.getContext('2d');
+        pCtx.imageSmoothingEnabled = true;
+        pCtx.imageSmoothingQuality = 'high';
 
         pCtx.fillStyle = '#ffffff';
         pCtx.fillRect(0, 0, pc.width, pc.height);
