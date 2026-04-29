@@ -240,6 +240,7 @@
         </div>
 
         <div id="loader" class="loader"></div>
+        <div id="dpiNote" style="font-size:11px;margin-top:6px;display:none;"></div>
         
         <div class="frame-preview-section" id="framePreviewSection" style="display:none;">
             <h2>ARTWORK PREVIEW</h2>
@@ -718,6 +719,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const visW_mm = artworkWidth - actualOverlapX * 2;
         const visH_mm = artworkHeight - actualOverlapY * 2;
 
+        const scl = upImg ? getImgScale(upImg, artworkWidth, artworkHeight) : 1;
+        const sHImg = upImg ? upImg.height * scl : 0;
+        const normalLimitY = sHImg - artworkHeight;
+        const excessUpMm = upImg && imgYOffset < -normalLimitY ? Math.abs(imgYOffset) - normalLimitY : 0;
+
         const sAW = artworkWidth * sf;
         const sAH = artworkHeight * sf;
         const sMount = mountSize * sf;
@@ -888,7 +894,7 @@ window.addEventListener('DOMContentLoaded', () => {
             vSolidLabel(leftLineX, outerY, outerY + sFrame, `${frameWidthMm.toFixed(1)}mm`);
         }
 
-        vSolidLabel(leftLineX, innerY, innerY + sVisH, `${visH_mm.toFixed(1)}mm`);
+        vSolidLabel(leftLineX, innerY, innerY + sVisH, `${(visH_mm - excessUpMm).toFixed(1)}mm`);
 
         if (hasMount) {
             const mH = outerH - (hasFrame ? sFrame * 2 : 0);
@@ -905,7 +911,7 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.translate(rightLineX + guideGap, rightMid);
             pCtx.rotate(-Math.PI / 2);
             pCtx.textAlign = 'center';
-            pCtx.fillText(`${totalHeightMm.toFixed(1)}mm`, 0, 5);
+            pCtx.fillText(`${(totalHeightMm - excessUpMm).toFixed(1)}mm`, 0, 5);
             pCtx.restore();
         }
 
@@ -994,8 +1000,10 @@ window.addEventListener('DOMContentLoaded', () => {
         if (upImg) {
             const scl = getImgScale(upImg, aW, fH3);
             const sW = upImg.width * scl, sH = upImg.height * scl;
+            const normalLimitY = sH - fH3;
+            const excessUp = imgYOffset < -normalLimitY ? Math.abs(imgYOffset) - normalLimitY : 0;
             const visW = Math.min(sW, aW).toFixed(1);
-            const visH = Math.min(sH, fH3).toFixed(1);
+            const visH = (Math.min(sH, fH3) - excessUp).toFixed(1);
             imgMeas = ` | IMAGE WIDTH: ${visW}mm | IMAGE HEIGHT: ${visH}mm`;
         }
         const meas = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm${imgMeas} | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
@@ -1009,15 +1017,44 @@ window.addEventListener('DOMContentLoaded', () => {
         const rdr = new FileReader();
         rdr.onload = e => {
             upImg = new Image();
-            upImg.onload = () => { imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0; loader.style.display = 'none'; drawCnv(); updateFramePreview(); };
+            upImg.onload = () => {
+                imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0; loader.style.display = 'none';
+                updateDpiNote();
+                drawCnv(); updateFramePreview();
+            };
             upImg.src = e.target.result;
         };
         rdr.readAsDataURL(event.target.files[0]);
     }
 
+    function updateDpiNote() {
+        const note = document.getElementById('dpiNote');
+        if (activeTemplate === 'RA7B') { note.style.display = 'none'; return; }
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        const aW = cW - SIDE_MARGIN_MM * 2;
+        const reqW = Math.round(aW / 25.4 * 150);
+        const reqH = Math.round(fH3 / 25.4 * 150);
+        note.style.display = 'block';
+        note.style.textAlign = 'center';
+        if (upImg) {
+            const scl = getImgScale(upImg, aW, fH3);
+            const sWmm = upImg.width * scl, sHmm = upImg.height * scl;
+            const dpiW = upImg.width / (Math.min(sWmm, aW) / 25.4);
+            const dpiH = upImg.height / (Math.min(sHmm, fH3) / 25.4);
+            const minDpi = Math.min(dpiW, dpiH);
+            const pass = minDpi >= 150;
+            note.style.color = pass ? '#27ae60' : '#c0392b';
+            note.textContent = `Recommended: ${reqW} × ${reqH}px  |  Image: ${upImg.width} × ${upImg.height}px  |  ${Math.round(minDpi)}dpi at print size  ${pass ? '✓' : '⚠ below 150dpi minimum'}`;
+        } else {
+            note.style.color = '#555';
+            note.textContent = `Recommended minimum image size for this artwork area: ${reqW} × ${reqH}px`;
+        }
+    }
+
     function rmvImg() {
         upImg = null; imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0;
         document.getElementById('loader').style.display = 'none';
+        updateDpiNote();
         drawCnv(); updateFramePreview();
     }
 
@@ -1030,7 +1067,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const amt = 3 * 72 / 25.4;
         if (vertical) {
             if (sH >= fH3) {
-                const limitY = sH - fH3;
+                const limitY = sH - fH3 + 10;
                 if (direction === 'up') imgYOffset = Math.max(-limitY, imgYOffset - amt);
                 else if (direction === 'down') imgYOffset = Math.min(0, imgYOffset + amt);
             }
@@ -1051,7 +1088,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const scl = getImgScale(upImg, aW, fH3);
         const sW = upImg.width * scl, sH = upImg.height * scl;
         const limitX = sW >= aW ? (sW - aW) / 2 : 0;
-        const limitY = sH >= fH3 ? sH - fH3 : 0;
+        const limitY = sH >= fH3 ? sH - fH3 + 10 : 0;
         document.getElementById('leftArrow').disabled  = sW < aW || imgXOffset <= -limitX;
         document.getElementById('rightArrow').disabled = sW < aW || imgXOffset >= limitX;
         document.getElementById('upArrow').disabled    = sH < fH3 || imgYOffset <= -limitY;
@@ -1085,9 +1122,9 @@ window.addEventListener('DOMContentLoaded', () => {
         return 0;
     }
 
-    function clampOffsetY(value, imgSize, containerSize) {
+    function clampOffsetY(value, imgSize, containerSize, extraHeadroom = 0) {
         if (imgSize >= containerSize) {
-            return Math.max(-(imgSize - containerSize), Math.min(0, value));
+            return Math.max(-(imgSize - containerSize) - extraHeadroom, Math.min(0, value));
         }
         return 0;
     }
@@ -1104,7 +1141,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const scl = getImgScale(upImg, aW, fH3);
         const sW = upImg.width * scl, sH = upImg.height * scl;
         imgXOffset = clampOffsetX((cx - rect.left) / pxPerMm - dragStartX, sW, aW);
-        imgYOffset = clampOffsetY((cy - rect.top) / pxPerMm - artworkTopMm - dragStartY, sH, fH3);
+        imgYOffset = clampOffsetY((cy - rect.top) / pxPerMm - artworkTopMm - dragStartY, sH, fH3, sH > fH3 ? 10 : 0);
         scheduleDraw(); updateFramePreview();
     }
 
@@ -1128,7 +1165,7 @@ window.addEventListener('DOMContentLoaded', () => {
         imgZoomOffset -= 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3); }
+        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, 10); }
         drawCnv(); updateFramePreview();
     });
     document.getElementById('zoomInBtn').addEventListener('click', () => {
@@ -1149,7 +1186,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('fn').addEventListener('input', function() { fn = this.value; drawCnv(); });
-    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); }));
+    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); updateDpiNote(); }));
     document.getElementById('mountSize').addEventListener('input', updateFramePreview);
     document.getElementById('mountColour').addEventListener('change', updateFramePreview);
     ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', updateFramePreview));
@@ -1350,13 +1387,14 @@ window.addEventListener('DOMContentLoaded', () => {
         drawCnv();
     }
 
-    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; activeTemplate = 'RA5'; drawCnv(); updateFramePreview(); });
-    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; activeTemplate = 'RA6'; drawCnv(); updateFramePreview(); });
-    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; activeTemplate = 'RA7'; drawCnv(); updateFramePreview(); });
-    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; activeTemplate = 'RA7B'; drawCnv(); updateFramePreview(); });
+    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; activeTemplate = 'RA5'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; activeTemplate = 'RA6'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; activeTemplate = 'RA7'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; activeTemplate = 'RA7B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
 
     updateLayout();
     drawCnv();
+    updateDpiNote();
     discoverFrames().then(() => updateFramePreview());
 });
 </script>
