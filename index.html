@@ -216,6 +216,15 @@
                 <input type="text" id="fn" placeholder="Eg. RA-FS-75-SB-TLH-900-B-MS">
             </div>
 
+            <div style="margin-top:8px;">
+                <label for="imgUrl">ROSENSTIELS IMAGE URL:</label>
+                <div style="display:flex;border:1px solid #000;border-radius:4px;overflow:hidden;height:30px;">
+                    <input type="text" id="imgUrl" placeholder="https://www.rosenstiels.com/art/print/..." style="flex:1;border:none;border-radius:0;margin-bottom:0;height:100%;padding:0 10px;font-size:14px;outline:none;box-shadow:none;">
+                    <button id="fetchUrlBtn" style="flex:0 0 auto;border:none;border-left:1px solid #000;border-radius:0;background:#fff;color:#000;font-size:11px;font-weight:600;padding:0 12px;cursor:pointer;white-space:nowrap;min-width:unset;min-height:unset;height:100%;display:flex;align-items:center;gap:5px;"><i class="fas fa-link" style="font-size:11px;"></i> FETCH IMAGE</button>
+                </div>
+                <div id="urlStatus" style="font-size:11px;margin-top:4px;display:none;"></div>
+            </div>
+
         </div>
 
         <div class="button-group">
@@ -1055,6 +1064,8 @@ window.addEventListener('DOMContentLoaded', () => {
     function rmvImg() {
         upImg = null; imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0;
         document.getElementById('loader').style.display = 'none';
+        const statusEl = document.getElementById('urlStatus');
+        statusEl.style.display = 'none';
         updateDpiNote();
         drawCnv(); updateFramePreview();
     }
@@ -1380,6 +1391,61 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('imgLdr').addEventListener('change', handleImgUp);
     document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
     document.getElementById('rmvBtn').addEventListener('click', rmvImg);
+
+    document.getElementById('fetchUrlBtn').addEventListener('click', async () => {
+        const urlInput = document.getElementById('imgUrl');
+        const statusEl = document.getElementById('urlStatus');
+        const loader = document.getElementById('loader');
+        const raw = urlInput.value.trim();
+        if (!raw) return;
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#888';
+        statusEl.textContent = 'Fetching page...';
+        try {
+            const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(raw);
+            const res = await fetch(proxyUrl, { headers: { 'Accept': 'text/html' } });
+            if (!res.ok) throw new Error('Page fetch failed (' + res.status + ')');
+            const html = await res.text();
+            const canvasM = html.match(/class="canvas"[\s\S]{0,400}<img[^>]+src="([^"]+)"/);
+            let imgSrc = canvasM ? canvasM[1].trim() : null;
+            if (!imgSrc) {
+                const m = html.match(/src="(https?:\/\/cdn\.felixr\.com\/photos\/[^"]+)"/);
+                if (m) imgSrc = m[1];
+            }
+            if (!imgSrc) throw new Error('No artwork image found on page');
+            imgSrc = imgSrc.replace(/\/photos\/[^/]+\//, '/photos/500/');
+            statusEl.textContent = 'Loading image...';
+            loader.style.display = 'block';
+            const proxiedImg = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(imgSrc);
+            const newImg = new Image();
+            newImg.crossOrigin = 'anonymous';
+            newImg.onload = () => {
+                upImg = newImg;
+                imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0;
+                loader.style.display = 'none';
+                statusEl.style.color = '#27ae60';
+                statusEl.textContent = 'Image loaded successfully';
+                updateDpiNote(); drawCnv(); updateFramePreview();
+            };
+            newImg.onerror = () => {
+                loader.style.display = 'none';
+                statusEl.style.color = '#c00';
+                statusEl.textContent = 'Could not load image';
+            };
+            newImg.src = proxiedImg;
+        } catch (err) {
+            loader.style.display = 'none';
+            statusEl.style.color = '#c00';
+            statusEl.textContent = err.message || 'Failed to fetch image';
+        }
+    });
+
+    document.getElementById('imgUrl').addEventListener('input', () => {
+        const statusEl = document.getElementById('urlStatus');
+        if (!document.getElementById('imgUrl').value.trim()) {
+            statusEl.style.display = 'none';
+        }
+    });
 
     function setValues(cW, cH, fH1, fH2, fH3) {
         ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, cH, fH1, fH2, fH3][i]);
