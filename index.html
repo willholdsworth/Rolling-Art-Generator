@@ -462,7 +462,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const nativeFt = IMG_W;
         const nativeScaleFactor = nativeFt / frameWidthMm;
-        const nativeDTile = 100 * nativeScaleFactor;
+        const nativeDTile = IMG_H * nativeScaleFactor;
         const nativeStride = nativeDTile * spacingFrac;
         const longestSide = Math.max(w, h);
         const nativeLongest = longestSide / ft * nativeFt;
@@ -750,10 +750,12 @@ window.addEventListener('DOMContentLoaded', () => {
             const totalEdge = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSize : 0);
             if (tW > 0 && (hasMount || hasFrame)) { const visW = tW - (totalEdge * 2); overlapX = (artworkWidth - visW) / 2; }
             if (tH > 0 && (hasMount || hasFrame)) { const visH = tH - (totalEdge * 2); overlapY = (artworkHeight - visH) / 2; }
-            actualOverlapX = hasMount ? Math.min(mountSize, overlapX) : 0;
-            actualOverlapY = hasMount ? Math.min(mountSize, overlapY) : 0;
-            mountExtX = hasMount ? Math.max(0, mountSize - overlapX) : 0;
-            mountExtY = hasMount ? Math.max(0, mountSize - overlapY) : 0;
+            const clampedOverlapX = Math.min(overlapX, totalEdge);
+            const clampedOverlapY = Math.min(overlapY, totalEdge);
+            actualOverlapX = clampedOverlapX;
+            actualOverlapY = clampedOverlapY;
+            mountExtX = hasMount ? Math.max(0, mountSize - Math.max(0, overlapX - (hasFrame ? frameWidthMm : 0))) : 0;
+            mountExtY = hasMount ? Math.max(0, mountSize - Math.max(0, overlapY - (hasFrame ? frameWidthMm : 0))) : 0;
             visW_mm = artworkWidth - actualOverlapX * 2;
             visH_mm = artworkHeight - actualOverlapY * 2;
         }
@@ -770,10 +772,12 @@ window.addEventListener('DOMContentLoaded', () => {
         const sMountExtY = mountExtY * sf;
         const sFrame = frameWidthMm * sf;
 
-        const totalExtraX = sMountExtX * 2 + (hasFrame ? sFrame * 2 : 0);
-        const totalExtraY = sMountExtY * 2 + (hasFrame ? sFrame * 2 : 0);
-        const totalHeightMm = artworkHeight + mountExtY * 2 + (hasFrame ? frameWidthMm * 2 : 0);
-        const totalWidthMm  = artworkWidth  + mountExtX * 2 + (hasFrame ? frameWidthMm * 2 : 0);
+        const totalEdgeX = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSize : 0);
+        const totalEdgeY = totalEdgeX;
+        const totalWidthMm  = artworkWidth + (totalEdgeX - actualOverlapX) * 2;
+        const totalHeightMm = artworkHeight + (totalEdgeY - actualOverlapY) * 2;
+        const totalExtraX = (totalWidthMm - artworkWidth) * sf;
+        const totalExtraY = (totalHeightMm - artworkHeight) * sf;
 
         const tickLen  = 7;
         const guideGap = 14;
@@ -800,8 +804,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const outerRight  = outerX + outerW;
         const outerBottom = outerY + outerH;
 
-        const aX     = outerX + (hasFrame ? sFrame : 0) + sMountExtX;
-        const aY     = outerY + (hasFrame ? sFrame : 0) + sMountExtY;
+        const aX     = outerX + (hasFrame ? sFrame : 0) + (hasMount ? sMount : 0) - actualOverlapX * sf;
+        const aY     = outerY + (hasFrame ? sFrame : 0) + (hasMount ? sMount : 0) - actualOverlapY * sf;
         const mountX = outerX + (hasFrame ? sFrame : 0);
         const mountY = outerY + (hasFrame ? sFrame : 0);
 
@@ -1246,6 +1250,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('fn').addEventListener('input', function() { fn = this.value; drawCnv(); });
     ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); updateDpiNote(); }));
     document.getElementById('mountSize').addEventListener('input', updateFramePreview);
+    document.getElementById('mountSize').addEventListener('change', updateFramePreview);
     document.getElementById('mountColour').addEventListener('change', updateFramePreview);
     document.getElementById('mountOutside').addEventListener('change', updateFramePreview);
     ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', updateFramePreview));
@@ -1320,17 +1325,21 @@ window.addEventListener('DOMContentLoaded', () => {
             const totalEdge = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSizeMm : 0);
             if (tW > 0 && (hasMount || hasFrame)) { const visW = tW - (totalEdge * 2); overlapX = (artworkWidth - visW) / 2; }
             if (tH > 0 && (hasMount || hasFrame)) { const visH = tH - (totalEdge * 2); overlapY = (artworkHeight - visH) / 2; }
-            actualOverlapX = hasMount ? Math.min(mountSizeMm, overlapX) : 0;
-            actualOverlapY = hasMount ? Math.min(mountSizeMm, overlapY) : 0;
-            mountExtX = hasMount ? Math.max(0, mountSizeMm - overlapX) : 0;
-            mountExtY = hasMount ? Math.max(0, mountSizeMm - overlapY) : 0;
+            const clampedOverlapX = Math.min(overlapX, totalEdge);
+            const clampedOverlapY = Math.min(overlapY, totalEdge);
+            actualOverlapX = clampedOverlapX;
+            actualOverlapY = clampedOverlapY;
+            mountExtX = hasMount ? Math.max(0, mountSizeMm - Math.max(0, overlapX - (hasFrame ? frameWidthMm : 0))) : 0;
+            mountExtY = hasMount ? Math.max(0, mountSizeMm - Math.max(0, overlapY - (hasFrame ? frameWidthMm : 0))) : 0;
             visW_mm = artworkWidth - actualOverlapX * 2;
             visH_mm = artworkHeight - actualOverlapY * 2;
         }
 
         const maxW = section.clientWidth || 400;
-        const totalWmm = artworkWidth + mountExtX * 2 + frameWidthMm * 2;
-        const totalHmm = artworkHeight + mountExtY * 2 + frameWidthMm * 2;
+        const totalEdgeXp = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSizeMm : 0);
+        const totalEdgeYp = totalEdgeXp;
+        const totalWmm = artworkWidth + (totalEdgeXp - actualOverlapX) * 2;
+        const totalHmm = artworkHeight + (totalEdgeYp - actualOverlapY) * 2;
         const sf = Math.min(maxW / totalWmm, 300 / totalHmm);
 
         previewCnv.width = Math.round(totalWmm * sf);
@@ -1347,8 +1356,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const outerX = 0, outerY = 0;
         const outerW = previewCnv.width, outerH = previewCnv.height;
         
-        const aX = outerX + sFrame + sMountExtX;
-        const aY = outerY + sFrame + sMountExtY;
+        const aX = outerX + sFrame + (hasMount ? sMount : 0) - actualOverlapX * sf;
+        const aY = outerY + sFrame + (hasMount ? sMount : 0) - actualOverlapY * sf;
         const mountX = outerX + sFrame;
         const mountY = outerY + sFrame;
 
