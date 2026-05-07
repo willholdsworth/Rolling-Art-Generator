@@ -169,23 +169,23 @@
                 </div>
             </div>
 
-            <div class="three-col" style="margin-top:8px;">
-                <div>
-                    <label for="mountSize" style="display:flex;align-items:center;gap:6px;">MOUNT SIZE (mm): <input type="checkbox" id="mountOutside" title="Mount outside frame" style="width:auto;margin:0;height:auto;padding:0;min-width:unset;cursor:pointer;"> <span style="font-weight:400;font-size:0.7rem;color:#555;">Outside frame</span></label>
+            <div class="three-col" style="margin-top:8px; align-items:end;">
+                <div style="display:flex;flex-direction:column;">
+                    <label for="mountSize" style="display:flex;align-items:center;gap:6px;min-height:32px;">MOUNT SIZE (mm): <input type="checkbox" id="mountOutside" title="Mount outside frame" style="width:auto;margin:0;height:auto;padding:0;min-width:unset;cursor:pointer;"> <span style="font-weight:400;font-size:0.7rem;color:#555;">Outside frame</span></label>
                     <input type="number" id="mountSize" value="0" min="0" step="0.1">
                 </div>
-                <div>
-                    <label for="mountColour">MOUNT COLOUR:</label>
-                    <select id="mountColour">
+                <div style="display:flex;flex-direction:column;">
+                    <label for="mountColour" style="min-height:32px;display:flex;align-items:center;">MOUNT COLOUR:</label>
+                    <select id="mountColour" style="height:36px;">
                         <option value="black">Black</option>
                         <option value="white">White</option>
                         <option value="#d4c5a0">Natural MDF</option>
                         <option value="#8B7355">Oak</option>
                     </select>
                 </div>
-                <div>
-                    <label for="frameSelect">FRAME SELECTION:</label>
-                    <div class="frame-picker-wrap" id="framePickerWrap">
+                <div style="display:flex;flex-direction:column;">
+                    <label for="frameSelect" style="min-height:32px;display:flex;align-items:center;">FRAME SELECTION:</label>
+                    <div class="frame-picker-wrap" id="framePickerWrap" style="flex:1;">
                         <div id="framePickerBtn">
                             <span class="thumb" id="framePickerThumb" style="display:none;"></span>
                             <span class="label" id="framePickerLabel">Loading frames...</span>
@@ -271,10 +271,24 @@ window.addEventListener('DOMContentLoaded', () => {
     const GITHUB_RAW = 'https://raw.githubusercontent.com/willholdsworth/Rolling-Art-Generator/main/images/';
     const GITHUB_API = 'https://api.github.com/repos/willholdsworth/Rolling-Art-Generator/contents/images';
 
-    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93, LANESBOROUGH: 99 };
+    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93, '666126000': 99, '608247000': 112, '123360000': 106 };
+    const FRAME_TILING_DEFAULT = { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 };
+    const FRAME_TILING = {
+        FR1:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR2:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR3:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR4:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR5:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR6:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR7:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        FR8:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        '666126000': { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
+        '608247000': { spacingFrac: 1.09, seamOpacity: 0.85, featherFrac: 0.14 },
+        '123360000': { spacingFrac: 0.82, seamOpacity: 0.13, featherFrac: 0.45 },
+    };
     const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5' };
     const FRAME_CORNER_COLORS = { FR3: '#d0d0d0' };
-    const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 15.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5, LANESBOROUGH: 25.5 };
+    const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 15.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5, '666126000': 25.5, '608247000': 25.5, '123360000': 25.5 };
 
     let FRAMES = {};
     const frameImageCache = {};
@@ -308,17 +322,27 @@ window.addEventListener('DOMContentLoaded', () => {
                 sel.appendChild(opt);
             });
 
-            FRAMES['LANESBOROUGH'] = { url: GITHUB_RAW + 'LANESBOROUGH.jpg' };
-            const lanesboroughOpt = document.createElement('option');
-            lanesboroughOpt.value = 'LANESBOROUGH'; lanesboroughOpt.textContent = 'LANESBOROUGH';
-            sel.appendChild(lanesboroughOpt);
+            FRAMES['666126000'] = { url: GITHUB_RAW + '666126000.jpg' };
+            FRAMES['608247000'] = { url: GITHUB_RAW + '608247000.jpg' };
+            FRAMES['123360000'] = { url: GITHUB_RAW + '123360000.jpg' };
+            const newFrameOpt1 = document.createElement('option');
+            newFrameOpt1.value = '666126000'; newFrameOpt1.textContent = '666126000';
+            sel.appendChild(newFrameOpt1);
+            const newFrameOpt2 = document.createElement('option');
+            newFrameOpt2.value = '608247000'; newFrameOpt2.textContent = '608247000';
+            sel.appendChild(newFrameOpt2);
+            const newFrameOpt3 = document.createElement('option');
+            newFrameOpt3.value = '123360000'; newFrameOpt3.textContent = '123360000';
+            sel.appendChild(newFrameOpt3);
 
             const allOptions = [
                 { value: 'none', label: 'No Frame', url: null },
                 { value: 'BLACK', label: 'Black Frame', url: null },
                 { value: 'WHITE', label: 'White Frame', url: null },
                 ...frameFiles.map(f => ({ value: f.name.replace(/\.jpg$/i, '').toUpperCase(), label: f.name.replace(/\.jpg$/i, '').toUpperCase(), url: GITHUB_RAW + f.name })),
-                { value: 'LANESBOROUGH', label: 'LANESBOROUGH', url: GITHUB_RAW + 'LANESBOROUGH.jpg' }
+                { value: '666126000', label: '666126000', url: GITHUB_RAW + '666126000.jpg' },
+                { value: '608247000', label: '608247000', url: GITHUB_RAW + '608247000.jpg' },
+                { value: '123360000', label: '123360000', url: GITHUB_RAW + '123360000.jpg' }
             ];
 
             dropdown.innerHTML = '';
@@ -433,98 +457,98 @@ window.addEventListener('DOMContentLoaded', () => {
         const ft = Math.round(frameWidthMm * artworkScaleFactor);
         if (!img || ft <= 0) return;
 
-        const IMG_W = 100, IMG_H = 150, IMG_MM = 100;
-        const mmToScale = artworkScaleFactor;
-        const dTile = (IMG_MM * mmToScale) * (IMG_H / IMG_H);
-        const stride = dTile * 1.08;
-        const featherW = dTile * 0.35;
+        const IMG_W = 100, IMG_H = 150;
+        const { spacingFrac, seamOpacity, featherFrac } = FRAME_TILING[frameKey] || FRAME_TILING_DEFAULT;
 
-        function makeTiledStrip(length, vertical) {
-            const oc = document.createElement('canvas');
-            oc.width  = vertical ? ft : length;
-            oc.height = vertical ? length : ft;
-            const octx = oc.getContext('2d');
-            octx.imageSmoothingEnabled = true;
-            octx.imageSmoothingQuality = 'high';
+        const nativeFt = IMG_W;
+        const nativeScaleFactor = nativeFt / frameWidthMm;
+        const nativeDTile = 100 * nativeScaleFactor;
+        const nativeStride = nativeDTile * spacingFrac;
+        const longestSide = Math.max(w, h);
+        const nativeLongest = longestSide / ft * nativeFt;
+        const tileCount = Math.ceil(nativeLongest / nativeStride) + 2;
+        const nativeStripW = nativeStride * (tileCount - 1) + nativeDTile;
 
-            function renderTile(ctx, pos) {
-                ctx.save();
-                if (!vertical) {
-                    ctx.translate(pos + dTile / 2, ft / 2);
-                    ctx.rotate(Math.PI / 2);
-                    ctx.drawImage(img, 0, 0, IMG_W, IMG_H, -ft / 2, -dTile / 2, ft, dTile);
-                } else {
-                    ctx.translate(ft / 2, pos + dTile / 2);
-                    ctx.drawImage(img, 0, 0, IMG_W, IMG_H, -ft / 2, -dTile / 2, ft, dTile);
-                }
-                ctx.restore();
-            }
-
-            const bg = document.createElement('canvas');
-            bg.width = oc.width; bg.height = oc.height;
-            const bgctx = bg.getContext('2d');
-            bgctx.imageSmoothingEnabled = true;
-            bgctx.imageSmoothingQuality = 'high';
-            bgctx.save();
-            if (!vertical) {
-                bgctx.translate(length / 2, ft / 2);
-                bgctx.rotate(Math.PI / 2);
-                bgctx.drawImage(img, 0, 0, IMG_W, IMG_H, -ft / 2, -length / 2, ft, length);
-            } else {
-                bgctx.drawImage(img, 0, 0, IMG_W, IMG_H, 0, 0, ft, length);
-            }
-            bgctx.restore();
-            octx.drawImage(bg, 0, 0);
-
-            let pos = 0;
-            while (pos < length) {
-                renderTile(octx, pos);
-                pos += dTile * 1.08;
-            }
-
-            const featherW = dTile * 0.35;
+        const maskedCover = (() => {
             const coverTile = document.createElement('canvas');
-            coverTile.width  = vertical ? ft : dTile;
-            coverTile.height = vertical ? dTile : ft;
+            coverTile.width = Math.ceil(nativeDTile);
+            coverTile.height = nativeFt;
             const cctx = coverTile.getContext('2d');
             cctx.imageSmoothingEnabled = true;
             cctx.imageSmoothingQuality = 'high';
-            renderTile(cctx, 0);
+            cctx.save();
+            cctx.translate(nativeDTile / 2, nativeFt / 2);
+            cctx.rotate(Math.PI / 2);
+            cctx.drawImage(img, 0, 0, IMG_W, IMG_H, -nativeFt / 2, -nativeDTile / 2, nativeFt, nativeDTile);
+            cctx.restore();
+
             const mask = document.createElement('canvas');
-            mask.width = coverTile.width; mask.height = coverTile.height;
+            mask.width = coverTile.width;
+            mask.height = nativeFt;
             const mctx = mask.getContext('2d');
-            const steps = 64;
+            const steps = 128;
             for (let s = 0; s <= steps; s++) {
                 const t = s / steps;
-                const fadeIn  = Math.min(t / (featherW / dTile), 1);
-                const fadeOut = Math.min((1 - t) / (featherW / dTile), 1);
+                const fadeIn = Math.min(t / featherFrac, 1);
+                const fadeOut = Math.min((1 - t) / featherFrac, 1);
                 const a = Math.min(fadeIn, fadeOut);
                 const smooth = a * a * (3 - 2 * a);
-                const px = dTile * t;
-                const npx = dTile * (s + 1) / steps;
+                const px = nativeDTile * t;
+                const npx = nativeDTile * (s + 1) / steps;
                 mctx.fillStyle = `rgba(0,0,0,${smooth.toFixed(4)})`;
-                if (!vertical) mctx.fillRect(px, 0, npx - px + 0.5, ft);
-                else mctx.fillRect(0, px, ft, npx - px + 0.5);
+                mctx.fillRect(px, 0, npx - px + 0.5, nativeFt);
             }
-            const maskedCover = document.createElement('canvas');
-            maskedCover.width = coverTile.width; maskedCover.height = coverTile.height;
-            const mcc = maskedCover.getContext('2d');
+            const mc = document.createElement('canvas');
+            mc.width = coverTile.width;
+            mc.height = nativeFt;
+            const mcc = mc.getContext('2d');
             mcc.imageSmoothingEnabled = true;
             mcc.imageSmoothingQuality = 'high';
             mcc.drawImage(coverTile, 0, 0);
             mcc.globalCompositeOperation = 'destination-in';
             mcc.drawImage(mask, 0, 0);
+            return mc;
+        })();
 
-            let seam = dTile * 1.08;
-            octx.globalAlpha = 1.0;
-            while (seam < length) {
-                const seamPos = seam - dTile / 2;
-                octx.drawImage(maskedCover, vertical ? 0 : seamPos, vertical ? seamPos : 0);
-                seam += dTile * 1.08;
-            }
-            octx.globalAlpha = 1;
+        const nativeStrip = document.createElement('canvas');
+        nativeStrip.width = Math.round(nativeStripW);
+        nativeStrip.height = nativeFt;
+        const nctx = nativeStrip.getContext('2d');
+        nctx.imageSmoothingEnabled = true;
+        nctx.imageSmoothingQuality = 'high';
 
-            return oc;
+        nctx.save();
+        nctx.translate(nativeStripW / 2, nativeFt / 2);
+        nctx.rotate(Math.PI / 2);
+        nctx.drawImage(img, 0, 0, IMG_W, IMG_H, -nativeFt / 2, -nativeStripW / 2, nativeFt, nativeStripW);
+        nctx.restore();
+
+        for (let i = 0; i < tileCount; i++) {
+            const pos = i * nativeStride;
+            nctx.save();
+            nctx.translate(pos + nativeDTile / 2, nativeFt / 2);
+            nctx.rotate(Math.PI / 2);
+            nctx.drawImage(img, 0, 0, IMG_W, IMG_H, -nativeFt / 2, -nativeDTile / 2, nativeFt, nativeDTile);
+            nctx.restore();
+        }
+
+        nctx.globalAlpha = seamOpacity;
+        for (let i = 1; i < tileCount; i++) {
+            const seamPos = i * nativeStride - nativeDTile / 2;
+            nctx.drawImage(maskedCover, seamPos, 0);
+        }
+        nctx.globalAlpha = 1;
+
+        function cutStrip(length) {
+            const nativeLength = length / ft * nativeFt;
+            const cnv = document.createElement('canvas');
+            cnv.width = Math.round(length);
+            cnv.height = ft;
+            const ctx = cnv.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(nativeStrip, 0, 0, nativeLength, nativeFt, 0, 0, length, ft);
+            return cnv;
         }
 
         function clip(points) {
@@ -535,8 +559,10 @@ window.addEventListener('DOMContentLoaded', () => {
             tCtx.clip();
         }
 
-        const topStrip    = makeTiledStrip(w, false);
-        const leftStrip   = makeTiledStrip(h, true);
+        const topStrip    = cutStrip(w);
+        const bottomStrip = cutStrip(w);
+        const leftStrip   = cutStrip(h);
+        const rightStrip  = cutStrip(h);
 
         const topPoly    = [[x,y],[x+w,y],[x+w-ft,y+ft],[x+ft,y+ft]];
         const bottomPoly = [[x,y+h],[x+w,y+h],[x+w-ft,y+h-ft],[x+ft,y+h-ft]];
@@ -551,19 +577,24 @@ window.addEventListener('DOMContentLoaded', () => {
         tCtx.save();
         tCtx.translate(x + w / 2, y + h - ft / 2);
         tCtx.scale(1, -1);
-        tCtx.drawImage(topStrip, -w / 2, -ft / 2, w, ft);
+        tCtx.drawImage(bottomStrip, -w / 2, -ft / 2, w, ft);
         tCtx.restore();
         tCtx.restore();
 
         tCtx.save(); clip(leftPoly);
-        tCtx.drawImage(leftStrip, x, y, ft, h);
+        tCtx.save();
+        tCtx.translate(x + ft / 2, y + h / 2);
+        tCtx.rotate(-Math.PI / 2);
+        tCtx.drawImage(leftStrip, -h / 2, -ft / 2, h, ft);
+        tCtx.restore();
         tCtx.restore();
 
         tCtx.save(); clip(rightPoly);
         tCtx.save();
         tCtx.translate(x + w - ft / 2, y + h / 2);
-        tCtx.scale(-1, 1);
-        tCtx.drawImage(leftStrip, -ft / 2, -h / 2, ft, h);
+        tCtx.rotate(-Math.PI / 2);
+        tCtx.scale(1, -1);
+        tCtx.drawImage(rightStrip, -h / 2, -ft / 2, h, ft);
         tCtx.restore();
         tCtx.restore();
 
