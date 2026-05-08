@@ -1097,10 +1097,12 @@ window.addEventListener('DOMContentLoaded', () => {
         note.style.display = 'block';
         note.style.textAlign = 'center';
         if (upImg) {
-            const scl = getImgScale(upImg, aW, fH3);
+            const effW = Math.max(1, aW + imgZoomOffset * 2);
+            const effH = Math.max(1, fH3 + imgZoomOffset * 2);
+            const scl = getImgScale(upImg, effW, effH);
             const sWmm = upImg.width * scl, sHmm = upImg.height * scl;
-            const dpiW = upImg.width / (Math.min(sWmm, aW) / 25.4);
-            const dpiH = upImg.height / (Math.min(sHmm, fH3) / 25.4);
+            const dpiW = upImg.width / (Math.min(sWmm, effW) / 25.4);
+            const dpiH = upImg.height / (Math.min(sHmm, effH) / 25.4);
             const minDpi = Math.min(dpiW, dpiH);
             const pass = minDpi >= 150;
             note.style.color = pass ? '#27ae60' : '#c0392b';
@@ -1228,14 +1230,14 @@ window.addEventListener('DOMContentLoaded', () => {
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
         if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, 10); }
-        drawCnv(); updateFramePreview();
+        drawCnv(); updateFramePreview(); updateDpiNote();
     });
     document.getElementById('zoomInBtn').addEventListener('click', () => {
         imgZoomOffset += 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
         if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3); }
-        drawCnv(); updateFramePreview();
+        drawCnv(); updateFramePreview(); updateDpiNote();
     });
 
     ['leftArrow', 'rightArrow', 'upArrow', 'downArrow'].forEach(id => {
