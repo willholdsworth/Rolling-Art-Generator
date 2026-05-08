@@ -114,6 +114,8 @@
         .frame-option:hover { background: #f0f0f0; }
         .frame-option.selected { background: #e8e8e8; font-weight: 600; }
         .frame-option .thumb { width: 32px; height: 22px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #eee; border: 1px solid #ddd; }
+        #dpiNote { font-size: 11px; margin-top: 6px; display: none; text-align: center; }
+        #dpiNote .dpi-line { margin: 1px 0; }
         
         @media (min-width: 769px) {
             .compact-group { gap: 6px; }
@@ -257,7 +259,9 @@
         </div>
 
         <div id="loader" class="loader"></div>
-        <div id="dpiNote" style="font-size:11px;margin-top:6px;display:none;"></div>
+        <div id="dpiNote">
+            <!-- Lines injected by updateDpiNote() -->
+        </div>
         
         <div class="frame-preview-section" id="framePreviewSection" style="display:none;">
             <h2>ARTWORK PREVIEW</h2>
@@ -425,7 +429,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function setPickerValue(value, label, url) {
-        const btn = document.getElementById('framePickerBtn');
         const thumb = document.getElementById('framePickerThumb');
         const lbl = document.getElementById('framePickerLabel');
         lbl.textContent = label;
@@ -662,7 +665,6 @@ window.addEventListener('DOMContentLoaded', () => {
     let imgZoomOffset = 0;
 
     function getNum(id) { return parseFloat(document.getElementById(id).value) || 0; }
-
     function setStatus(msg, colour) {}
 
     function updateLayout() {
@@ -674,7 +676,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const SIDE_MARGIN_MM = 5;
+    const SIDE_MARGIN_MM = 10;
     let rAFPending = false;
 
     function scheduleDraw() {
@@ -745,6 +747,45 @@ window.addEventListener('DOMContentLoaded', () => {
         ctx.fillText(fn, 15, fH1 + 15);
     }
 
+    // ─── Shared DPI / viewing-distance calculation ──────────────────────────────
+    // Returns null if no image loaded, or an object with minDpi, distanceM, distanceFt,
+    // reqW, reqH, pass.
+    function calcDpiInfo() {
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        const aW = cW - SIDE_MARGIN_MM * 2;
+        const reqW = Math.round(aW / 25.4 * 150);
+        const reqH = Math.round(fH3 / 25.4 * 150);
+        if (!upImg) return { reqW, reqH, minDpi: null };
+        const effW = Math.max(1, aW + imgZoomOffset * 2);
+        const effH = Math.max(1, fH3 + imgZoomOffset * 2);
+        const scl = getImgScale(upImg, effW, effH);
+        const sWmm = upImg.width * scl, sHmm = upImg.height * scl;
+        const dpiW = upImg.width / (Math.min(sWmm, effW) / 25.4);
+        const dpiH = upImg.height / (Math.min(sHmm, effH) / 25.4);
+        const minDpi = Math.min(dpiW, dpiH);
+        const pass = minDpi >= 150;
+        const distanceInches = 3438 / minDpi;
+        const distanceM = parseFloat((distanceInches * 0.0254).toFixed(1));
+        const distanceFt = parseFloat((distanceInches / 12).toFixed(1));
+        return { reqW, reqH, minDpi, pass, distanceM, distanceFt };
+    }
+
+    function updateDpiNote() {
+        const noteEl = document.getElementById('dpiNote');
+        if (activeTemplate === 'RA7B') { noteEl.style.display = 'none'; return; }
+        const info = calcDpiInfo();
+        noteEl.style.display = 'block';
+        if (!upImg || info.minDpi === null) {
+            noteEl.innerHTML = `<div class="dpi-line" style="color:#555;">Recommended minimum image size for this artwork area: ${info.reqW} &times; ${info.reqH}px</div>`;
+        } else {
+            const dpiText = `${Math.round(info.minDpi)}dpi at print size ${info.pass ? '✓' : '⚠ below 150dpi minimum'}`;
+            const distText = `Sharp to the human eye from ${info.distanceM}m (${info.distanceFt}ft)`;
+            noteEl.innerHTML =
+                `<div class="dpi-line" style="color:#555;">Recommended: ${info.reqW} &times; ${info.reqH}px | Image: ${upImg.naturalWidth} &times; ${upImg.naturalHeight}px | ${Math.round(info.minDpi)}dpi at print size</div>` +
+                `<div class="dpi-line" style="color:#555;">${distText}</div>`;
+        }
+    }
+
     async function exportLowResJPG() {
         const cW = getNum('cW'), fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
         const mountSize = getNum('mountSize');
@@ -755,8 +796,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const artworkWidth = cW - SIDE_MARGIN_MM * 2;
         const artworkHeight = fH3;
-        const margin = 140, topMargin = 140, bottomMargin = 80;
-        const cropMarkLength = 20, cropMarkGap = 10;
         const maxDim = 800;
         const sf = Math.min(maxDim / artworkWidth, maxDim / artworkHeight);
         
@@ -880,12 +919,10 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.fillStyle = mc;
             const mW = outerW - (hasFrame ? sFrame * 2 : 0);
             const mH = outerH - (hasFrame ? sFrame * 2 : 0);
-            
             pCtx.fillRect(mountX, mountY, mW, sMount);
             pCtx.fillRect(mountX, mountY + mH - sMount, mW, sMount);
             pCtx.fillRect(mountX, mountY, sMount, mH);
             pCtx.fillRect(mountX + mW - sMount, mountY, sMount, mH);
-
             const bSize = Math.min(6 * sf, sMount);
             pCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
             pCtx.beginPath(); pCtx.moveTo(innerX, innerY); pCtx.lineTo(innerX + sVisW, innerY); pCtx.lineTo(innerX + sVisW + bSize, innerY - bSize); pCtx.lineTo(innerX - bSize, innerY - bSize); pCtx.fill();
@@ -908,18 +945,10 @@ window.addEventListener('DOMContentLoaded', () => {
             if (solidColour) {
                 const x = fX, y = fY, w = fW, h = fH, ft = sFrame;
                 pCtx.fillStyle = solidColour;
-                pCtx.beginPath();
-                pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft);
-                pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
-                pCtx.beginPath();
-                pCtx.moveTo(x, y + h); pCtx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft);
-                pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
-                pCtx.beginPath();
-                pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft); pCtx.lineTo(x + ft, y + h - ft);
-                pCtx.lineTo(x, y + h); pCtx.closePath(); pCtx.fill();
-                pCtx.beginPath();
-                pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft); pCtx.lineTo(x + w - ft, y + h - ft);
-                pCtx.lineTo(x + w, y + h); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath(); pCtx.moveTo(x, y); pCtx.lineTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft); pCtx.lineTo(x + ft, y + ft); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath(); pCtx.moveTo(x, y + h); pCtx.lineTo(x + w, y + h); pCtx.lineTo(x + w - ft, y + h - ft); pCtx.lineTo(x + ft, y + h - ft); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath(); pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft); pCtx.lineTo(x + ft, y + h - ft); pCtx.lineTo(x, y + h); pCtx.closePath(); pCtx.fill();
+                pCtx.beginPath(); pCtx.moveTo(x + w, y); pCtx.lineTo(x + w - ft, y + ft); pCtx.lineTo(x + w - ft, y + h - ft); pCtx.lineTo(x + w, y + h); pCtx.closePath(); pCtx.fill();
                 pCtx.strokeStyle = '#888888'; pCtx.lineWidth = 1;
                 pCtx.beginPath();
                 pCtx.moveTo(x, y); pCtx.lineTo(x + ft, y + ft);
@@ -932,7 +961,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 pCtx.lineWidth = 1.5;
             } else {
                 try {
-                    const frameImg = frameImageCache[selectedFrame];
+                    let frameImg = frameImageCache[selectedFrame];
                     if (!frameImg) {
                         try { frameImg = await loadFrameImage(selectedFrame); } catch (e) { frameImg = null; }
                     }
@@ -967,7 +996,6 @@ window.addEventListener('DOMContentLoaded', () => {
         pCtx.fillText(headingText, mainCentreX, (topLineY - 20) / 2 + 14);
 
         if (frameProofImg) {
-            const panelCentreX = panelX + framePanelW / 2;
             const imgAspect = frameProofImg.width / frameProofImg.height;
             let imgDrawW = Math.min(500, framePanelW - 20);
             let imgDrawH = imgDrawW / imgAspect;
@@ -984,12 +1012,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
         pCtx.strokeStyle = '#444'; pCtx.lineWidth = 1.5; pCtx.fillStyle = '#444';
 
-        function htick(x, y) {
-            pCtx.beginPath(); pCtx.moveTo(x - tickLen, y); pCtx.lineTo(x + tickLen, y); pCtx.stroke();
-        }
-        function vtick(x, y) {
-            pCtx.beginPath(); pCtx.moveTo(x, y - tickLen); pCtx.lineTo(x, y + tickLen); pCtx.stroke();
-        }
+        function htick(x, y) { pCtx.beginPath(); pCtx.moveTo(x - tickLen, y); pCtx.lineTo(x + tickLen, y); pCtx.stroke(); }
+        function vtick(x, y) { pCtx.beginPath(); pCtx.moveTo(x, y - tickLen); pCtx.lineTo(x, y + tickLen); pCtx.stroke(); }
 
         function vSolidLabel(lineX, y1, y2, label) {
             pCtx.beginPath(); pCtx.moveTo(lineX - tickLen, y1); pCtx.lineTo(lineX + tickLen, y1); pCtx.stroke();
@@ -1006,12 +1030,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const leftLineX = outerX - guideGap - tickLen;
 
-        if (hasFrame && !mountOutside) {
-            vSolidLabel(leftLineX, outerY, outerY + sFrame, `${frameWidthMm.toFixed(1)}mm`);
-        }
-        if (hasFrame && mountOutside) {
-            vSolidLabel(leftLineX, outerBottom - sMountExtY - sFrame, outerBottom - sMountExtY, `${frameWidthMm.toFixed(1)}mm`);
-        }
+        if (hasFrame && !mountOutside) { vSolidLabel(leftLineX, outerY, outerY + sFrame, `${frameWidthMm.toFixed(1)}mm`); }
+        if (hasFrame && mountOutside)  { vSolidLabel(leftLineX, outerBottom - sMountExtY - sFrame, outerBottom - sMountExtY, `${frameWidthMm.toFixed(1)}mm`); }
 
         vSolidLabel(leftLineX, innerY, innerY + sVisH, `${(visH_mm - excessUpMm).toFixed(1)}mm`);
 
@@ -1019,9 +1039,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const mH = outerH - (hasFrame ? sFrame * 2 : 0);
             vSolidLabel(leftLineX, mountY + mH - sMount, mountY + mH, `${mountSize.toFixed(1)}mm`);
         }
-        if (hasMount && mountOutside) {
-            vSolidLabel(leftLineX, outerY, outerY + sMountExtY, `${mountSize.toFixed(1)}mm`);
-        }
+        if (hasMount && mountOutside) { vSolidLabel(leftLineX, outerY, outerY + sMountExtY, `${mountSize.toFixed(1)}mm`); }
 
         const rightLineX = outerRight + guideGap + tickLen;
         if (hasFrame || hasMount) {
@@ -1050,20 +1068,33 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.fillText(`${totalWidthMm.toFixed(1)}mm`, (outerX + outerRight) / 2, botLineY + guideGap + 5);
         }
 
+        // ── Disclaimer text, now with optional viewing distance line ────────────
+        const dpiInfo = calcDpiInfo();
+        let sharpnessText = '';
+        if (dpiInfo.minDpi !== null) {
+            const totalInches = 3438 / dpiInfo.minDpi;
+            const feet = Math.floor(totalInches / 12);
+            const inches = totalInches % 12;
+            const inchFraction = inches >= 0.67 ? ` ${Math.round(inches)}"` : (inches >= 0.33 ? ` ${Math.floor(inches)} ${Math.round((inches % 1) * 2)}/2"` : '');
+            const ftInches = feet > 0 ? `${feet}'${inchFraction}` : `${Math.round(inches)}"`;
+            sharpnessText = ` It will be sharp to the human eye from ${dpiInfo.distanceM}m (${ftInches}).`;
+        }
+
         let disclaimerLine1, disclaimerLine2;
         if (hasFrame && hasMount) {
-            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine1 = `This proof shows how your artwork will be cropped to fit the mechanism dimensions.${sharpnessText}`;
             disclaimerLine2 = 'It is shown with a representative frame and mount. Please review carefully and confirm approval for your order to progress to production.';
         } else if (hasFrame) {
-            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine1 = `This proof shows how your artwork will be cropped to fit the mechanism dimensions.${sharpnessText}`;
             disclaimerLine2 = 'It is shown with a representative frame. Please review carefully and confirm approval for your order to progress to production.';
         } else if (hasMount) {
-            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
+            disclaimerLine1 = `This proof shows how your artwork will be cropped to fit the mechanism dimensions.${sharpnessText}`;
             disclaimerLine2 = 'It is shown with a mount. Please review carefully and confirm approval for your order to progress to production.';
         } else {
-            disclaimerLine1 = 'This proof shows how your artwork will be cropped to fit the mechanism dimensions.';
-            disclaimerLine2 = 'Please review the positioning and cropping carefully, then confirm approval for your order to progress to production.';
+            disclaimerLine1 = `This proof shows how your artwork will be cropped to fit the mechanism dimensions.${sharpnessText}`;
+            disclaimerLine2 = 'It is important to review the positioning and cropping to ensure it suits your requirements. Please confirm approval for your order to progress to production.';
         }
+
         const disclaimerAreaTop = (hasFrame || hasMount) ? botLineY + guideGap + 5 + fontSize + 10 : outerBottom;
         const disclaimerAreaBot = pc.height - (hasFrame || hasMount ? 10 : 10);
         const disclaimerMidY = (disclaimerAreaTop + disclaimerAreaBot) / 2 + (hasFrame || hasMount ? 0 : 12);
@@ -1149,37 +1180,10 @@ window.addEventListener('DOMContentLoaded', () => {
         rdr.readAsDataURL(event.target.files[0]);
     }
 
-    function updateDpiNote() {
-        const note = document.getElementById('dpiNote');
-        if (activeTemplate === 'RA7B') { note.style.display = 'none'; return; }
-        const cW = getNum('cW'), fH3 = getNum('fH3');
-        const aW = cW - SIDE_MARGIN_MM * 2;
-        const reqW = Math.round(aW / 25.4 * 150);
-        const reqH = Math.round(fH3 / 25.4 * 150);
-        note.style.display = 'block';
-        note.style.textAlign = 'center';
-        if (upImg) {
-            const effW = Math.max(1, aW + imgZoomOffset * 2);
-            const effH = Math.max(1, fH3 + imgZoomOffset * 2);
-            const scl = getImgScale(upImg, effW, effH);
-            const sWmm = upImg.width * scl, sHmm = upImg.height * scl;
-            const dpiW = upImg.width / (Math.min(sWmm, effW) / 25.4);
-            const dpiH = upImg.height / (Math.min(sHmm, effH) / 25.4);
-            const minDpi = Math.min(dpiW, dpiH);
-            const pass = minDpi >= 150;
-            note.style.color = pass ? '#27ae60' : '#c0392b';
-            note.textContent = `Recommended: ${reqW} × ${reqH}px  |  Image: ${upImg.width} × ${upImg.height}px  |  ${Math.round(minDpi)}dpi at print size  ${pass ? '✓' : '⚠ below 150dpi minimum'}`;
-        } else {
-            note.style.color = '#555';
-            note.textContent = `Recommended minimum image size for this artwork area: ${reqW} × ${reqH}px`;
-        }
-    }
-
     function rmvImg() {
         upImg = null; imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0;
         document.getElementById('loader').style.display = 'none';
-        const statusEl = document.getElementById('urlStatus');
-        statusEl.style.display = 'none';
+        document.getElementById('urlStatus').style.display = 'none';
         updateDpiNote();
         drawCnv(); updateFramePreview();
     }
@@ -1206,6 +1210,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
         drawCnv(); updateFramePreview();
     }
+
     function updateArrows(cW) {
         const ids = ['leftArrow', 'rightArrow', 'upArrow', 'downArrow'];
         if (!upImg) { ids.forEach(id => document.getElementById(id).disabled = true); return; }
@@ -1241,17 +1246,12 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function clampOffsetX(value, imgSize, containerSize) {
-        if (imgSize >= containerSize) {
-            const limit = (imgSize - containerSize) / 2;
-            return Math.max(-limit, Math.min(limit, value));
-        }
+        if (imgSize >= containerSize) { const limit = (imgSize - containerSize) / 2; return Math.max(-limit, Math.min(limit, value)); }
         return 0;
     }
 
     function clampOffsetY(value, imgSize, containerSize, extraHeadroom = 0) {
-        if (imgSize >= containerSize) {
-            return Math.max(-(imgSize - containerSize) - extraHeadroom, Math.min(0, value));
-        }
+        if (imgSize >= containerSize) { return Math.max(-(imgSize - containerSize) - extraHeadroom, Math.min(0, value)); }
         return 0;
     }
 
@@ -1329,39 +1329,20 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('frameSelect').addEventListener('change', async function() {
         const key = this.value;
         updateFrameThicknessRow(key);
-
         if (AUTO_MOUNT_SIZES[key] !== undefined) {
             document.getElementById('mountSize').value = AUTO_MOUNT_SIZES[key];
         } else if (key === 'none' || key === 'BLACK' || key === 'WHITE' || key === 'MDF') {
             document.getElementById('mountSize').value = 0;
         }
-
-        if (key === 'none' || key === 'BLACK' || key === 'WHITE' || key === 'MDF') { 
-            setStatus(''); 
-            updateFramePreview(); 
-            return; 
-        }
-        if (frameImageCache[key]) { 
-            setStatus('Frame ready.', '#2a7a2a'); 
-            updateFramePreview(); 
-            return; 
-        }
-        try { 
-            await loadFrameImage(key); 
-            updateFramePreview(); 
-        } catch (e) {
-            updateFramePreview();
-        }
+        if (key === 'none' || key === 'BLACK' || key === 'WHITE' || key === 'MDF') { setStatus(''); updateFramePreview(); return; }
+        if (frameImageCache[key]) { setStatus('Frame ready.', '#2a7a2a'); updateFramePreview(); return; }
+        try { await loadFrameImage(key); updateFramePreview(); } catch (e) { updateFramePreview(); }
     });
 
     async function updateFramePreview() {
         const fH3 = getNum('fH3');
         const section = document.getElementById('framePreviewSection');
-        
-        if (fH3 <= 0) {
-            section.style.display = 'none';
-            return;
-        }
+        if (fH3 <= 0) { section.style.display = 'none'; return; }
 
         const selectedFrame = document.getElementById('frameSelect').value;
         const previewCnv = document.getElementById('framePreviewCnv');
@@ -1427,12 +1408,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const sAH = artworkHeight * sf;
         const outerX = 0, outerY = 0;
         const outerW = previewCnv.width, outerH = previewCnv.height;
-        
+
         const aX = outerX + sFrame + (hasMount ? sMount : 0) - actualOverlapX * sf;
         const aY = outerY + sFrame + (hasMount ? sMount : 0) - actualOverlapY * sf;
         const mountX = outerX + sFrame;
         const mountY = outerY + sFrame;
-
         const innerX = mountX + (hasMount ? sMount : 0);
         const innerY = mountY + (hasMount ? sMount : 0);
         const sVisW = visW_mm * sf;
@@ -1460,7 +1440,6 @@ window.addEventListener('DOMContentLoaded', () => {
             pctx.fillRect(mountX, mountY + outerH - sFrame * 2 - sMount, outerW - sFrame * 2, sMount);
             pctx.fillRect(mountX, mountY, sMount, outerH - sFrame * 2);
             pctx.fillRect(mountX + outerW - sFrame * 2 - sMount, mountY, sMount, outerH - sFrame * 2);
-
             const bSize = Math.min(6 * sf, sMount);
             pctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
             pctx.beginPath(); pctx.moveTo(innerX, innerY); pctx.lineTo(innerX + sVisW, innerY); pctx.lineTo(innerX + sVisW + bSize, innerY - bSize); pctx.lineTo(innerX - bSize, innerY - bSize); pctx.fill();
@@ -1482,18 +1461,10 @@ window.addEventListener('DOMContentLoaded', () => {
             if (SOLID_FRAMES[selectedFrame]) {
                 const x = fX, y = fY, w = fW, h = fH, ft = sFrame;
                 pctx.fillStyle = SOLID_FRAMES[selectedFrame];
-                pctx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft);
-                pctx.lineTo(x + ft, y + ft); pctx.closePath(); pctx.fill();
-                pctx.beginPath();
-                pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.lineTo(x + ft, y + h - ft); pctx.closePath(); pctx.fill();
-                pctx.beginPath();
-                pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft);
-                pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
-                pctx.beginPath();
-                pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft);
-                pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
+                pctx.beginPath(); pctx.moveTo(x, y); pctx.lineTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + ft, y + ft); pctx.closePath(); pctx.fill();
+                pctx.beginPath(); pctx.moveTo(x, y + h); pctx.lineTo(x + w, y + h); pctx.lineTo(x + w - ft, y + h - ft); pctx.lineTo(x + ft, y + h - ft); pctx.closePath(); pctx.fill();
+                pctx.beginPath(); pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft); pctx.lineTo(x + ft, y + h - ft); pctx.lineTo(x, y + h); pctx.closePath(); pctx.fill();
+                pctx.beginPath(); pctx.moveTo(x + w, y); pctx.lineTo(x + w - ft, y + ft); pctx.lineTo(x + w - ft, y + h - ft); pctx.lineTo(x + w, y + h); pctx.closePath(); pctx.fill();
                 pctx.strokeStyle = '#888888'; pctx.lineWidth = 1;
                 pctx.beginPath();
                 pctx.moveTo(x, y); pctx.lineTo(x + ft, y + ft);
@@ -1578,9 +1549,8 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('imgUrl').addEventListener('input', () => {
-        const statusEl = document.getElementById('urlStatus');
         if (!document.getElementById('imgUrl').value.trim()) {
-            statusEl.style.display = 'none';
+            document.getElementById('urlStatus').style.display = 'none';
         }
     });
 
