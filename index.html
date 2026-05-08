@@ -179,8 +179,8 @@
                     <select id="mountColour" style="height:36px;">
                         <option value="black">Black</option>
                         <option value="white">White</option>
-                        <option value="#d4c5a0">Natural MDF</option>
-                        <option value="#8B7355">Oak</option>
+                        <option value="#D8B589">MDF</option>
+                        <option value="#c19a6b">Oak</option>
                     </select>
                 </div>
                 <div style="display:flex;flex-direction:column;">
@@ -197,6 +197,13 @@
                         <option value="none">Loading frames...</option>
                     </select>
                     <div class="frame-status" id="frameStatus" style="display:none;"></div>
+                </div>
+            </div>
+
+            <div id="frameThicknessRow" style="display:none;margin-top:8px;">
+                <div style="display:flex;flex-direction:column;max-width:200px;">
+                    <label for="frameThickness" style="min-height:32px;display:flex;align-items:center;">FRAME THICKNESS (mm):</label>
+                    <input type="number" id="frameThickness" value="124.5" min="10" max="300" step="1">
                 </div>
             </div>
 
@@ -271,7 +278,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const GITHUB_RAW = 'https://raw.githubusercontent.com/willholdsworth/Rolling-Art-Generator/main/images/';
     const GITHUB_API = 'https://api.github.com/repos/willholdsworth/Rolling-Art-Generator/contents/images';
 
-    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93, '666126000': 99, '608247000': 112, '123360000': 106 };
+    const FRAME_WIDTHS = { BLACK: 100, WHITE: 100, MDF: 100, FR1: 61, FR2: 70, FR3: 109, FR4: 95, FR5: 80, FR6: 105, FR7: 99, FR8: 93, '666126000': 99, '608247000': 112, '123360000': 106 };
     const FRAME_TILING_DEFAULT = { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 };
     const FRAME_TILING = {
         FR1:         { spacingFrac: 1.00, seamOpacity: 0.80, featherFrac: 0.18 },
@@ -286,9 +293,35 @@ window.addEventListener('DOMContentLoaded', () => {
         '608247000': { spacingFrac: 1.09, seamOpacity: 0.85, featherFrac: 0.14 },
         '123360000': { spacingFrac: 0.82, seamOpacity: 0.13, featherFrac: 0.45 },
     };
-    const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5' };
+    const SOLID_FRAMES = { BLACK: '#111111', WHITE: '#f5f5f5', MDF: '#D8B589' };
     const FRAME_CORNER_COLORS = { FR3: '#d0d0d0' };
     const AUTO_MOUNT_SIZES = { FR1: 63.5, FR2: 54.5, FR3: 15.5, FR4: 29.5, FR5: 44.5, FR6: 19.5, FR7: 25.5, FR8: 31.5, '666126000': 25.5, '608247000': 12.5, '123360000': 18.5 };
+    const FRAME_PROOF_IMGS = {
+        '666126000': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/666126000.jpg',
+        '608247000': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/608247000.jpg',
+        '123360000': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/123360000.jpg',
+        'FR1': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR1.jpg',
+        'FR2': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR2.jpg',
+        'FR3': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR3.jpg',
+        'FR4': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR4.jpg',
+        'FR5': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR5.jpg',
+        'FR6': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR6.jpg',
+        'FR7': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR7.jpg',
+        'FR8': 'https://s3.eu-west-1.amazonaws.com/cdn.futureautomation.co.uk/Website/Product/RollingArt/Frame/FR8.jpg',
+    };
+    const frameProofImgCache = {};
+    function loadFrameProofImg(key) {
+        return new Promise((resolve) => {
+            if (frameProofImgCache[key]) { resolve(frameProofImgCache[key]); return; }
+            const url = FRAME_PROOF_IMGS[key];
+            if (!url) { resolve(null); return; }
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => { frameProofImgCache[key] = img; resolve(img); };
+            img.onerror = () => resolve(null);
+            img.src = url;
+        });
+    }
 
     let FRAMES = {};
     const frameImageCache = {};
@@ -310,9 +343,9 @@ window.addEventListener('DOMContentLoaded', () => {
             });
 
             sel.innerHTML = '<option value="none">No Frame</option>';
-            ['BLACK', 'WHITE'].forEach(key => {
+            ['BLACK', 'WHITE', 'MDF'].forEach(key => {
                 const opt = document.createElement('option');
-                opt.value = key; opt.textContent = key === 'BLACK' ? 'Black Frame' : 'White Frame';
+                opt.value = key; opt.textContent = key === 'BLACK' ? 'Black Frame' : key === 'WHITE' ? 'White Frame' : 'MDF Frame';
                 sel.appendChild(opt);
             });
             frameFiles.forEach(f => {
@@ -339,6 +372,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 { value: 'none', label: 'No Frame', url: null },
                 { value: 'BLACK', label: 'Black Frame', url: null },
                 { value: 'WHITE', label: 'White Frame', url: null },
+                { value: 'MDF', label: 'MDF Frame', url: null },
                 ...frameFiles.map(f => ({ value: f.name.replace(/\.jpg$/i, '').toUpperCase(), label: f.name.replace(/\.jpg$/i, '').toUpperCase(), url: GITHUB_RAW + f.name })),
                 { value: '666126000', label: '666126000', url: GITHUB_RAW + '666126000.jpg' },
                 { value: '608247000', label: '608247000', url: GITHUB_RAW + '608247000.jpg' },
@@ -360,7 +394,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const swatch = document.createElement('div');
                     swatch.className = 'thumb';
-                    swatch.style.background = opt.value === 'BLACK' ? '#111' : opt.value === 'WHITE' ? '#f5f5f5' : '#ddd';
+                    swatch.style.background = opt.value === 'BLACK' ? '#111' : opt.value === 'WHITE' ? '#f5f5f5' : opt.value === 'MDF' ? '#D8B589' : '#ddd';
                     swatch.style.border = '1px solid #ccc';
                     div.appendChild(swatch);
                 }
@@ -417,7 +451,7 @@ window.addEventListener('DOMContentLoaded', () => {
             } else {
                 t.style.display = value === 'none' ? 'none' : 'block';
                 if (value !== 'none') {
-                    t.style.background = value === 'BLACK' ? '#111' : '#f5f5f5';
+                    t.style.background = value === 'BLACK' ? '#111' : value === 'WHITE' ? '#f5f5f5' : value === 'MDF' ? '#D8B589' : '#ddd';
                     t.style.border = '1px solid #ccc';
                 }
             }
@@ -716,7 +750,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const mountSize = getNum('mountSize');
         const mountColour = document.getElementById('mountColour').value;
         const selectedFrame = document.getElementById('frameSelect').value;
-        const frameWidthMm = FRAME_WIDTHS[selectedFrame] || 30;
+        const hasFrame = selectedFrame !== 'none';
+        const frameWidthMm = hasFrame ? ((['BLACK','WHITE','MDF'].includes(selectedFrame)) ? getNum('frameThickness') : (FRAME_WIDTHS[selectedFrame] || 80)) : 0;
 
         const artworkWidth = cW - SIDE_MARGIN_MM * 2;
         const artworkHeight = fH3;
@@ -726,7 +761,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const sf = Math.min(maxDim / artworkWidth, maxDim / artworkHeight);
         
         const hasMount = mountSize > 0;
-        const hasFrame = selectedFrame !== 'none';
         const mountOutside = document.getElementById('mountOutside').checked;
 
         let overlapX, overlapY, actualOverlapX, actualOverlapY, mountExtX, mountExtY, visW_mm, visH_mm;
@@ -782,27 +816,39 @@ window.addEventListener('DOMContentLoaded', () => {
         const tickLen  = 7;
         const guideGap = 14;
         const fontSize = 14;
-        const leftPad  = 110;
+        const leftPad  = 130;
+        const frameProofImg = hasFrame && FRAME_PROOF_IMGS[selectedFrame] ? await loadFrameProofImg(selectedFrame) : null;
+        const framePanelW = frameProofImg ? 520 : 0;
         const rightPad = (hasFrame || hasMount) ? 90 : 20;
         const topPad   = 120;
-        const botPad   = (hasFrame || hasMount) ? 120 : 80;
+        const baseBotPad = (hasFrame || hasMount) ? 120 : 80;
 
+        const proofDpr = window.devicePixelRatio || 1;
+        const panelGap = 130;
+        const artworkBlockW = sAW + totalExtraX + leftPad + rightPad;
+        const totalContentW = artworkBlockW + (frameProofImg ? panelGap + framePanelW : 0);
+        const minPanelH = frameProofImg ? Math.ceil(frameProofImg.height * (Math.min(500, framePanelW - 20) / frameProofImg.width)) + 60 : 0;
+        const botPad = Math.max(baseBotPad, minPanelH - (sAH + totalExtraY) - topPad + baseBotPad);
+        const proofW = totalContentW;
+        const proofH = Math.round(sAH + totalExtraY + topPad + botPad);
         const pc = document.createElement('canvas');
-        pc.width  = Math.round(sAW + totalExtraX + leftPad + rightPad);
-        pc.height = Math.round(sAH + totalExtraY + topPad + botPad);
+        pc.width  = Math.round(proofW * proofDpr);
+        pc.height = Math.round(proofH * proofDpr);
         const pCtx = pc.getContext('2d');
+        pCtx.scale(proofDpr, proofDpr);
         pCtx.imageSmoothingEnabled = true;
         pCtx.imageSmoothingQuality = 'high';
 
         pCtx.fillStyle = '#ffffff';
-        pCtx.fillRect(0, 0, pc.width, pc.height);
+        pCtx.fillRect(0, 0, proofW, proofH);
 
-        const outerX      = (pc.width - (sAW + totalExtraX)) / 2;
+        const outerX      = frameProofImg ? leftPad : Math.round((proofW - (sAW + totalExtraX)) / 2);
         const outerY      = topPad;
         const outerW      = sAW + totalExtraX;
         const outerH      = sAH + totalExtraY;
         const outerRight  = outerX + outerW;
         const outerBottom = outerY + outerH;
+        const panelX      = outerRight + rightPad + panelGap - rightPad;
 
         const aX     = outerX + (hasFrame ? sFrame : 0) + (hasMount ? sMount : 0) - actualOverlapX * sf;
         const aY     = outerY + (hasFrame ? sFrame : 0) + (hasMount ? sMount : 0) - actualOverlapY * sf;
@@ -912,13 +958,29 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.fillRect(outerRight - sMountExtX, outerY, sMountExtX, outerH);
         }
 
-        const frameDisplayName = selectedFrame === 'BLACK' ? 'BLACK FRAME' : selectedFrame === 'WHITE' ? 'WHITE FRAME' : selectedFrame;
-        const frameLabel = hasFrame ? ` - ${frameDisplayName}` : '';
-        const headingText = fn ? `${fn} - ARTWORK PROOF${frameLabel}` : `ARTWORK PROOF${frameLabel}`;
+        const frameDisplayName = selectedFrame === 'BLACK' ? 'BLACK FRAME' : selectedFrame === 'WHITE' ? 'WHITE FRAME' : selectedFrame === 'MDF' ? 'MDF FRAME' : selectedFrame;
+        const headingText = fn ? `${fn} - ARTWORK PROOF` : `ARTWORK PROOF`;
         pCtx.fillStyle = '#111';
         pCtx.font = 'bold 22px Arial'; pCtx.textAlign = 'center';
         const topLineY = outerY - guideGap - tickLen;
-        pCtx.fillText(headingText, pc.width / 2, (topLineY - 20) / 2 + 14);
+        const mainCentreX = frameProofImg ? (outerX + outerW + panelGap + framePanelW) / 2 : outerX + outerW / 2;
+        pCtx.fillText(headingText, mainCentreX, (topLineY - 20) / 2 + 14);
+
+        if (frameProofImg) {
+            const panelCentreX = panelX + framePanelW / 2;
+            const imgAspect = frameProofImg.width / frameProofImg.height;
+            let imgDrawW = Math.min(500, framePanelW - 20);
+            let imgDrawH = imgDrawW / imgAspect;
+            if (imgDrawH > 500) { imgDrawH = 500; imgDrawW = imgDrawH * imgAspect; }
+            const totalBlockH = 28 + 12 + imgDrawH;
+            const blockTop = (proofH - totalBlockH) / 2;
+            const labelY = blockTop + 20;
+            const imgDrawX = panelX + (framePanelW - imgDrawW) / 2;
+            const imgDrawY = labelY + 12;
+            pCtx.drawImage(frameProofImg, imgDrawX, imgDrawY, imgDrawW, imgDrawH);
+            pCtx.font = 'bold 22px Arial'; pCtx.textAlign = 'center'; pCtx.fillStyle = '#111';
+            pCtx.fillText(`FRAME STYLE - ${frameDisplayName}`, imgDrawX + imgDrawW / 2, labelY);
+        }
 
         pCtx.strokeStyle = '#444'; pCtx.lineWidth = 1.5; pCtx.fillStyle = '#444';
 
@@ -1006,8 +1068,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const disclaimerAreaBot = pc.height - (hasFrame || hasMount ? 10 : 10);
         const disclaimerMidY = (disclaimerAreaTop + disclaimerAreaBot) / 2 + (hasFrame || hasMount ? 0 : 12);
         pCtx.font = '12px Arial'; pCtx.textAlign = 'center'; pCtx.fillStyle = '#777';
-        pCtx.fillText(disclaimerLine1, pc.width / 2, disclaimerMidY - 8);
-        pCtx.fillText(disclaimerLine2, pc.width / 2, disclaimerMidY + 8);
+        pCtx.fillText(disclaimerLine1, mainCentreX, disclaimerMidY - 8);
+        pCtx.fillText(disclaimerLine2, mainCentreX, disclaimerMidY + 8);
 
         const fileNameBase = hasFrame
             ? (fn ? `${fn} - ARTWORK PROOF - ${frameDisplayName}` : `ARTWORK PROOF - ${frameDisplayName}`)
@@ -1256,17 +1318,25 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mountColour').addEventListener('change', updateFramePreview);
     document.getElementById('mountOutside').addEventListener('change', updateFramePreview);
     ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', updateFramePreview));
+    document.getElementById('frameThickness').addEventListener('input', updateFramePreview);
+    document.getElementById('frameThickness').addEventListener('change', updateFramePreview);
+
+    function updateFrameThicknessRow(key) {
+        const row = document.getElementById('frameThicknessRow');
+        row.style.display = (key === 'BLACK' || key === 'WHITE' || key === 'MDF') ? 'block' : 'none';
+    }
 
     document.getElementById('frameSelect').addEventListener('change', async function() {
         const key = this.value;
+        updateFrameThicknessRow(key);
 
         if (AUTO_MOUNT_SIZES[key] !== undefined) {
             document.getElementById('mountSize').value = AUTO_MOUNT_SIZES[key];
-        } else if (key === 'none' || key === 'BLACK' || key === 'WHITE') {
+        } else if (key === 'none' || key === 'BLACK' || key === 'WHITE' || key === 'MDF') {
             document.getElementById('mountSize').value = 0;
         }
 
-        if (key === 'none' || key === 'BLACK' || key === 'WHITE') { 
+        if (key === 'none' || key === 'BLACK' || key === 'WHITE' || key === 'MDF') { 
             setStatus(''); 
             updateFramePreview(); 
             return; 
@@ -1305,7 +1375,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const cW = getNum('cW');
         const artworkWidth = cW - SIDE_MARGIN_MM * 2;
         const artworkHeight = fH3;
-        const frameWidthMm = hasFrame ? (FRAME_WIDTHS[selectedFrame] || 80) : 0;
+        const frameWidthMm = hasFrame ? ((['BLACK','WHITE','MDF'].includes(selectedFrame)) ? getNum('frameThickness') : (FRAME_WIDTHS[selectedFrame] || 80)) : 0;
 
         let actualOverlapX, actualOverlapY, mountExtX, mountExtY, visW_mm, visH_mm;
 
