@@ -677,6 +677,47 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     const SIDE_MARGIN_MM = 10;
+
+    const STANDARD_UNDERLAP = {
+        RA5:  { x: 22,   y: 19.5 },
+        RA6:  { x: 22,   y: 26.5 },
+        RA7:  { x: 22,   y: 20   },
+        RA7B: { x: 22,   y: 20   },
+    };
+
+    function calcOverlap(cW, fH3, frameWidthMm, mountSizeMm, mountOutside) {
+        const totalEdge = frameWidthMm + mountSizeMm;
+        const tW = getNum('targetW');
+        const tH = getNum('targetH');
+        const std = STANDARD_UNDERLAP[activeTemplate] || STANDARD_UNDERLAP.RA5;
+
+        let overlapX, overlapY;
+        if (tW > 0) {
+            const apertureW = tW - totalEdge * 2;
+            overlapX = (cW - apertureW) / 2;
+        } else {
+            overlapX = std.x;
+        }
+        if (tH > 0) {
+            const apertureH = tH - totalEdge * 2;
+            overlapY = (fH3 - apertureH) / 2;
+        } else {
+            overlapY = std.y;
+        }
+
+        const clampedX = Math.min(Math.max(overlapX, 0), totalEdge);
+        const clampedY = Math.min(Math.max(overlapY, 0), totalEdge);
+        const mountExtX = mountSizeMm > 0 ? Math.max(0, mountSizeMm - Math.max(0, overlapX - frameWidthMm)) : 0;
+        const mountExtY = mountSizeMm > 0 ? Math.max(0, mountSizeMm - Math.max(0, overlapY - frameWidthMm)) : 0;
+        return {
+            actualOverlapX: clampedX,
+            actualOverlapY: clampedY,
+            mountExtX,
+            mountExtY,
+            visW_mm: cW - clampedX * 2,
+            visH_mm: fH3 - clampedY * 2,
+        };
+    }
     let rAFPending = false;
 
     function scheduleDraw() {
@@ -802,7 +843,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const hasMount = mountSize > 0;
         const mountOutside = document.getElementById('mountOutside').checked;
 
-        let overlapX, overlapY, actualOverlapX, actualOverlapY, mountExtX, mountExtY, visW_mm, visH_mm;
+        let actualOverlapX, actualOverlapY, mountExtX, mountExtY, visW_mm, visH_mm;
 
         if (hasMount && mountOutside) {
             overlapX = 0; overlapY = 0;
@@ -810,27 +851,13 @@ window.addEventListener('DOMContentLoaded', () => {
             mountExtX = mountSize; mountExtY = mountSize;
             visW_mm = artworkWidth; visH_mm = artworkHeight;
         } else {
-            overlapX = hasMount ? 17 : 0;
-            overlapY = 0;
-            if (hasMount) {
-                if (activeTemplate === 'RA5') overlapY = 19.5;
-                else if (activeTemplate === 'RA6') overlapY = 26.5;
-                else if (activeTemplate === 'RA7' || activeTemplate === 'RA7B') overlapY = 20;
-                else overlapY = 19.5;
-            }
-            const tW = getNum('targetW');
-            const tH = getNum('targetH');
-            const totalEdge = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSize : 0);
-            if (tW > 0 && (hasMount || hasFrame)) { const visW = tW - (totalEdge * 2); overlapX = (artworkWidth - visW) / 2; }
-            if (tH > 0 && (hasMount || hasFrame)) { const visH = tH - (totalEdge * 2); overlapY = (artworkHeight - visH) / 2; }
-            const clampedOverlapX = Math.min(overlapX, totalEdge);
-            const clampedOverlapY = Math.min(overlapY, totalEdge);
-            actualOverlapX = clampedOverlapX;
-            actualOverlapY = clampedOverlapY;
-            mountExtX = hasMount ? Math.max(0, mountSize - Math.max(0, overlapX - (hasFrame ? frameWidthMm : 0))) : 0;
-            mountExtY = hasMount ? Math.max(0, mountSize - Math.max(0, overlapY - (hasFrame ? frameWidthMm : 0))) : 0;
-            visW_mm = artworkWidth - actualOverlapX * 2;
-            visH_mm = artworkHeight - actualOverlapY * 2;
+            const ov = calcOverlap(cW, fH3, frameWidthMm, hasMount ? mountSize : 0, mountOutside);
+            actualOverlapX = ov.actualOverlapX;
+            actualOverlapY = ov.actualOverlapY;
+            mountExtX = ov.mountExtX;
+            mountExtY = ov.mountExtY;
+            visW_mm = ov.visW_mm;
+            visH_mm = ov.visH_mm;
         }
 
         const scl = upImg ? getImgScale(upImg, artworkWidth, artworkHeight) : 1;
@@ -845,10 +872,10 @@ window.addEventListener('DOMContentLoaded', () => {
         const sMountExtY = mountExtY * sf;
         const sFrame = frameWidthMm * sf;
 
-        const totalEdgeX = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSize : 0);
+        const totalEdgeX = frameWidthMm + (hasMount ? mountSize : 0);
         const totalEdgeY = totalEdgeX;
-        const totalWidthMm  = artworkWidth + (totalEdgeX - actualOverlapX) * 2;
-        const totalHeightMm = artworkHeight + (totalEdgeY - actualOverlapY) * 2;
+        const totalWidthMm  = visW_mm + totalEdgeX * 2;
+        const totalHeightMm = visH_mm + totalEdgeY * 2;
         const totalExtraX = (totalWidthMm - artworkWidth) * sf;
         const totalExtraY = (totalHeightMm - artworkHeight) * sf;
 
@@ -1070,8 +1097,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
         // ── Disclaimer text, now with optional viewing distance line ────────────
         const dpiInfo = calcDpiInfo();
+        const isRosenstielsImg = !!document.getElementById('imgUrl').value.trim();
         let sharpnessText = '';
-        if (dpiInfo.minDpi !== null) {
+        if (dpiInfo.minDpi !== null && !isRosenstielsImg) {
             const totalInches = 3438 / dpiInfo.minDpi;
             const feet = Math.floor(totalInches / 12);
             const inches = totalInches % 12;
@@ -1365,34 +1393,20 @@ window.addEventListener('DOMContentLoaded', () => {
             mountExtX = mountSizeMm; mountExtY = mountSizeMm;
             visW_mm = artworkWidth; visH_mm = artworkHeight;
         } else {
-            let overlapX = hasMount ? 17 : 0;
-            let overlapY = 0;
-            if (hasMount) {
-                if (activeTemplate === 'RA5') overlapY = 19.5;
-                else if (activeTemplate === 'RA6') overlapY = 26.5;
-                else if (activeTemplate === 'RA7' || activeTemplate === 'RA7B') overlapY = 20;
-                else overlapY = 19.5;
-            }
-            const tW = getNum('targetW');
-            const tH = getNum('targetH');
-            const totalEdge = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSizeMm : 0);
-            if (tW > 0 && (hasMount || hasFrame)) { const visW = tW - (totalEdge * 2); overlapX = (artworkWidth - visW) / 2; }
-            if (tH > 0 && (hasMount || hasFrame)) { const visH = tH - (totalEdge * 2); overlapY = (artworkHeight - visH) / 2; }
-            const clampedOverlapX = Math.min(overlapX, totalEdge);
-            const clampedOverlapY = Math.min(overlapY, totalEdge);
-            actualOverlapX = clampedOverlapX;
-            actualOverlapY = clampedOverlapY;
-            mountExtX = hasMount ? Math.max(0, mountSizeMm - Math.max(0, overlapX - (hasFrame ? frameWidthMm : 0))) : 0;
-            mountExtY = hasMount ? Math.max(0, mountSizeMm - Math.max(0, overlapY - (hasFrame ? frameWidthMm : 0))) : 0;
-            visW_mm = artworkWidth - actualOverlapX * 2;
-            visH_mm = artworkHeight - actualOverlapY * 2;
+            const ov = calcOverlap(cW, artworkHeight, frameWidthMm, hasMount ? mountSizeMm : 0, mountOutside);
+            actualOverlapX = ov.actualOverlapX;
+            actualOverlapY = ov.actualOverlapY;
+            mountExtX = ov.mountExtX;
+            mountExtY = ov.mountExtY;
+            visW_mm = ov.visW_mm;
+            visH_mm = ov.visH_mm;
         }
 
         const maxW = section.clientWidth || 400;
-        const totalEdgeXp = (hasFrame ? frameWidthMm : 0) + (hasMount ? mountSizeMm : 0);
+        const totalEdgeXp = frameWidthMm + (hasMount ? mountSizeMm : 0);
         const totalEdgeYp = totalEdgeXp;
-        const totalWmm = artworkWidth + (totalEdgeXp - actualOverlapX) * 2;
-        const totalHmm = artworkHeight + (totalEdgeYp - actualOverlapY) * 2;
+        const totalWmm = hasFrame ? visW_mm + totalEdgeXp * 2 : artworkWidth;
+        const totalHmm = hasFrame ? visH_mm + totalEdgeYp * 2 : artworkHeight;
         const sf = Math.min(maxW / totalWmm, 300 / totalHmm);
 
         previewCnv.width = Math.round(totalWmm * sf);
