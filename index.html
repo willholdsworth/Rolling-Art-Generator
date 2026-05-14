@@ -182,9 +182,9 @@
                             <option value="#c19a6b">Oak</option>
                             <option value="__custom__">Custom...</option>
                         </select>
-                        <div class="swatch-wrap" id="mountSwatchWrap" style="display:none;position:relative;">
+                        <div class="swatch-wrap" id="mountSwatchWrap" style="position:relative;">
                             <input type="color" id="mountColourCustom" value="#888888" style="width:40px;height:36px;padding:2px;cursor:pointer;border:1px solid #000;border-radius:4px;display:block;">
-                            <button type="button" id="mountColourReset" title="Revert to Black" style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid #555;background:#fff;color:#333;font-size:10px;line-height:1;padding:0;cursor:pointer;min-width:unset;min-height:unset;font-weight:bold;">×</button>
+                            <button type="button" id="mountColourReset" title="Revert to previous" style="display:none;position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid #555;background:#fff;color:#333;font-size:10px;line-height:1;padding:0;cursor:pointer;min-width:unset;min-height:unset;font-weight:bold;">×</button>
                         </div>
                     </div>
                 </div>
@@ -811,7 +811,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const scl = getImgScale(img, aW, h);
         const sW = img.width * scl, sH = img.height * scl;
         const xPos = SIDE_MARGIN_MM + (aW - sW) / 2 + imgXOffset;
-        const yPos = y + imgYOffset;
+        const yPos = y + (h - sH) / 2 + imgYOffset;
         ctx.save();
         ctx.beginPath(); ctx.rect(SIDE_MARGIN_MM, y, aW, h); ctx.clip();
         ctx.drawImage(img, xPos, yPos, sW, sH);
@@ -1285,9 +1285,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const amt = 3 * 72 / 25.4;
         if (vertical) {
             if (sH >= fH3) {
-                const limitY = sH - fH3 + 10;
-                if (direction === 'up') imgYOffset = Math.max(-limitY, imgYOffset - amt);
-                else if (direction === 'down') imgYOffset = Math.min(0, imgYOffset + amt);
+                const half = (sH - fH3) / 2;
+                const limitUp = half + 10;
+                const limitDown = half;
+                if (direction === 'up') imgYOffset = Math.max(-limitUp, imgYOffset - amt);
+                else if (direction === 'down') imgYOffset = Math.min(limitDown, imgYOffset + amt);
             }
         } else {
             if (sW >= aW) {
@@ -1307,11 +1309,13 @@ window.addEventListener('DOMContentLoaded', () => {
         const scl = getImgScale(upImg, aW, fH3);
         const sW = upImg.width * scl, sH = upImg.height * scl;
         const limitX = sW >= aW ? (sW - aW) / 2 : 0;
-        const limitY = sH >= fH3 ? sH - fH3 + 10 : 0;
+        const half = sH >= fH3 ? (sH - fH3) / 2 : 0;
+        const limitUp = half + 10;
+        const limitDown = half;
         document.getElementById('leftArrow').disabled  = sW < aW || imgXOffset <= -limitX;
         document.getElementById('rightArrow').disabled = sW < aW || imgXOffset >= limitX;
-        document.getElementById('upArrow').disabled    = sH < fH3 || imgYOffset <= -limitY;
-        document.getElementById('downArrow').disabled  = sH < fH3 || imgYOffset >= 0;
+        document.getElementById('upArrow').disabled    = sH < fH3 || imgYOffset <= -limitUp;
+        document.getElementById('downArrow').disabled  = sH < fH3 || imgYOffset >= limitDown;
     }
 
     function startMoving(dir, vert) { if (!intervalId) intervalId = setInterval(() => shiftImage(dir, vert), 100); }
@@ -1339,7 +1343,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function clampOffsetY(value, imgSize, containerSize, extraHeadroom = 0) {
-        if (imgSize >= containerSize) { return Math.max(-(imgSize - containerSize) - extraHeadroom, Math.min(0, value)); }
+        if (imgSize >= containerSize) {
+            const half = (imgSize - containerSize) / 2;
+            return Math.max(-(half + extraHeadroom), Math.min(half, value));
+        }
         return 0;
     }
 
