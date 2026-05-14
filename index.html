@@ -171,29 +171,38 @@
                 </div>
             </div>
 
-            <div class="three-col" style="margin-top:8px; align-items:end;">
+            <div class="two-col" style="margin-top:8px; align-items:end;">
                 <div style="display:flex;flex-direction:column;">
-                    <label for="mountSize" style="display:flex;align-items:center;gap:6px;min-height:32px;">MOUNT SIZE (mm): <input type="checkbox" id="mountOutside" title="Mount outside frame" style="width:auto;margin:0;height:auto;padding:0;min-width:unset;cursor:pointer;"> <span style="font-weight:400;font-size:0.7rem;color:#555;">Outside frame</span></label>
-                    <input type="number" id="mountSize" value="0" min="0" step="0.1">
-                </div>
-                <div style="display:flex;flex-direction:column;">
-                    <label for="mountColour" style="min-height:32px;display:flex;align-items:center;">MOUNT COLOUR:</label>
-                    <select id="mountColour" style="height:36px;">
-                        <option value="black">Black</option>
-                        <option value="white">White</option>
-                        <option value="#D8B589">MDF</option>
-                        <option value="#c19a6b">Oak</option>
-                    </select>
+                    <label for="mountColour" style="display:flex;align-items:center;gap:6px;min-height:32px;">MOUNT COLOUR: <input type="checkbox" id="mountOutside" title="Mount outside frame" style="width:auto;margin:0;height:auto;padding:0;min-width:unset;cursor:pointer;"> <span style="font-weight:400;font-size:0.7rem;color:#555;">Outside frame</span></label>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <select id="mountColour" style="height:36px;flex:1;">
+                            <option value="black">Black</option>
+                            <option value="white">White</option>
+                            <option value="#D8B589">MDF</option>
+                            <option value="#c19a6b">Oak</option>
+                            <option value="__custom__">Custom...</option>
+                        </select>
+                        <div class="swatch-wrap" id="mountSwatchWrap" style="display:none;position:relative;">
+                            <input type="color" id="mountColourCustom" value="#888888" style="width:40px;height:36px;padding:2px;cursor:pointer;border:1px solid #000;border-radius:4px;display:block;">
+                            <button type="button" id="mountColourReset" title="Revert to Black" style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid #555;background:#fff;color:#333;font-size:10px;line-height:1;padding:0;cursor:pointer;min-width:unset;min-height:unset;font-weight:bold;">×</button>
+                        </div>
+                    </div>
                 </div>
                 <div style="display:flex;flex-direction:column;">
                     <label for="frameSelect" style="min-height:32px;display:flex;align-items:center;">FRAME SELECTION:</label>
-                    <div class="frame-picker-wrap" id="framePickerWrap" style="flex:1;">
-                        <div id="framePickerBtn">
-                            <span class="thumb" id="framePickerThumb" style="display:none;"></span>
-                            <span class="label" id="framePickerLabel">Loading frames...</span>
-                            <span class="arrow">▼</span>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <div class="frame-picker-wrap" id="framePickerWrap" style="flex:1;">
+                            <div id="framePickerBtn">
+                                <span class="thumb" id="framePickerThumb" style="display:none;"></span>
+                                <span class="label" id="framePickerLabel">Loading frames...</span>
+                                <span class="arrow">▼</span>
+                            </div>
+                            <div class="frame-dropdown" id="frameDropdown"></div>
                         </div>
-                        <div class="frame-dropdown" id="frameDropdown"></div>
+                        <div class="swatch-wrap" id="overlaySwatchWrap" style="position:relative;">
+                            <input type="color" id="frameOverlayColour" value="#8a6a3a" title="Frame overlay (none)" style="width:40px;height:36px;padding:2px;cursor:pointer;border:1px solid #000;border-radius:4px;display:block;opacity:0.4;">
+                            <button type="button" id="frameOverlayReset" title="Remove overlay" style="display:none;position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:1px solid #555;background:#fff;color:#333;font-size:10px;line-height:1;padding:0;cursor:pointer;min-width:unset;min-height:unset;font-weight:bold;">×</button>
+                        </div>
                     </div>
                     <select id="frameSelect" style="display:none;">
                         <option value="none">Loading frames...</option>
@@ -202,10 +211,16 @@
                 </div>
             </div>
 
-            <div id="frameThicknessRow" style="display:none;margin-top:8px;">
-                <div style="display:flex;flex-direction:column;max-width:200px;">
-                    <label for="frameThickness" style="min-height:32px;display:flex;align-items:center;">FRAME THICKNESS (mm):</label>
-                    <input type="number" id="frameThickness" value="124.5" min="10" max="300" step="1">
+            <div id="frameThicknessRow" style="margin-top:8px;">
+                <div class="two-col" style="align-items:end;">
+                    <div style="display:flex;flex-direction:column;">
+                        <label for="mountSize" style="min-height:32px;display:flex;align-items:center;">MOUNT SIZE (mm):</label>
+                        <input type="number" id="mountSize" value="0" min="0" step="0.1">
+                    </div>
+                    <div style="display:flex;flex-direction:column;">
+                        <label for="frameThickness" style="min-height:32px;display:flex;align-items:center;">FRAME THICKNESS (mm):</label>
+                        <input type="number" id="frameThickness" value="80" min="10" max="300" step="1">
+                    </div>
                 </div>
             </div>
 
@@ -490,6 +505,40 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function applyFrameOverlay(tCtx, x, y, w, h, ft, hex) {
+        if (!hex || ft <= 0) return;
+        const offscreen = document.createElement('canvas');
+        offscreen.width = tCtx.canvas.width; offscreen.height = tCtx.canvas.height;
+        const off = offscreen.getContext('2d');
+        off.drawImage(tCtx.canvas, 0, 0);
+        const iData = off.getImageData(x, y, w, h);
+        const d = iData.data;
+        const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+        const targetLum = 0.2126*(r/255) + 0.7152*(g/255) + 0.0722*(b/255);
+        for (let i = 0; i < d.length; i += 4) {
+            const srcLum = (0.2126*d[i] + 0.7152*d[i+1] + 0.0722*d[i+2]) / 255;
+            const mapped = srcLum * (targetLum * 2 + 0.15) + targetLum * 0.35;
+            const grey = Math.min(255, Math.max(0, mapped * 255));
+            d[i] = d[i+1] = d[i+2] = grey;
+        }
+        off.putImageData(iData, x, y);
+        off.globalCompositeOperation = 'color';
+        off.globalAlpha = 1;
+        off.fillStyle = hex;
+        off.beginPath();
+        off.moveTo(x, y); off.lineTo(x + w, y); off.lineTo(x + w, y + h); off.lineTo(x, y + h); off.closePath();
+        off.moveTo(x + ft, y + ft); off.lineTo(x + ft, y + h - ft); off.lineTo(x + w - ft, y + h - ft); off.lineTo(x + w - ft, y + ft); off.closePath();
+        off.fill('evenodd');
+        off.globalCompositeOperation = 'source-over';
+        tCtx.save();
+        tCtx.beginPath();
+        tCtx.moveTo(x, y); tCtx.lineTo(x + w, y); tCtx.lineTo(x + w, y + h); tCtx.lineTo(x, y + h); tCtx.closePath();
+        tCtx.moveTo(x + ft, y + ft); tCtx.lineTo(x + ft, y + h - ft); tCtx.lineTo(x + w - ft, y + h - ft); tCtx.lineTo(x + w - ft, y + ft); tCtx.closePath();
+        tCtx.clip('evenodd');
+        tCtx.drawImage(offscreen, 0, 0);
+        tCtx.restore();
+    }
+
     function drawFrameAroundRect(tCtx, img, frameWidthMm, artworkScaleFactor, x, y, w, h, frameKey) {
         const ft = Math.round(frameWidthMm * artworkScaleFactor);
         if (!img || ft <= 0) return;
@@ -685,24 +734,28 @@ window.addEventListener('DOMContentLoaded', () => {
         RA7B: { x: 22,   y: 20   },
     };
 
-    function calcOverlap(cW, fH3, frameWidthMm, mountSizeMm, mountOutside) {
+    function calcOverlap(cW, fH3, frameWidthMm, mountSizeMm, mountOutside, defaultFrameWidthMm) {
         const totalEdge = frameWidthMm + mountSizeMm;
         const tW = getNum('targetW');
         const tH = getNum('targetH');
         const std = STANDARD_UNDERLAP[activeTemplate] || STANDARD_UNDERLAP.RA5;
+
+        const baseFrameMm = (typeof defaultFrameWidthMm === 'number' && defaultFrameWidthMm > 0) ? defaultFrameWidthMm : frameWidthMm;
+        const baseTotalEdge = baseFrameMm + (mountOutside ? 0 : mountSizeMm);
+        const effectiveTotalEdgeForOuter = mountOutside ? frameWidthMm : totalEdge;
 
         let overlapX, overlapY;
         if (tW > 0) {
             const apertureW = tW - totalEdge * 2;
             overlapX = (cW - apertureW) / 2;
         } else {
-            overlapX = std.x;
+            overlapX = std.x + (effectiveTotalEdgeForOuter - baseTotalEdge);
         }
         if (tH > 0) {
             const apertureH = tH - totalEdge * 2;
             overlapY = (fH3 - apertureH) / 2;
         } else {
-            overlapY = std.y;
+            overlapY = std.y + (effectiveTotalEdgeForOuter - baseTotalEdge);
         }
 
         const clampedX = Math.min(Math.max(overlapX, 0), totalEdge);
@@ -830,10 +883,11 @@ window.addEventListener('DOMContentLoaded', () => {
     async function exportLowResJPG() {
         const cW = getNum('cW'), fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
         const mountSize = getNum('mountSize');
-        const mountColour = document.getElementById('mountColour').value;
+        let mountColour = document.getElementById('mountColour').value;
+        if (mountColour === '__custom__') mountColour = document.getElementById('mountColourCustom').value;
         const selectedFrame = document.getElementById('frameSelect').value;
         const hasFrame = selectedFrame !== 'none';
-        const frameWidthMm = hasFrame ? ((['BLACK','WHITE','MDF'].includes(selectedFrame)) ? getNum('frameThickness') : (FRAME_WIDTHS[selectedFrame] || 80)) : 0;
+        const frameWidthMm = hasFrame ? getNum('frameThickness') : 0;
 
         const artworkWidth = cW - SIDE_MARGIN_MM * 2;
         const artworkHeight = fH3;
@@ -851,7 +905,8 @@ window.addEventListener('DOMContentLoaded', () => {
             mountExtX = mountSize; mountExtY = mountSize;
             visW_mm = artworkWidth; visH_mm = artworkHeight;
         } else {
-            const ov = calcOverlap(cW, fH3, frameWidthMm, hasMount ? mountSize : 0, mountOutside);
+            const defaultFrameW = hasFrame ? (FRAME_WIDTHS[selectedFrame] || 80) : 0;
+            const ov = calcOverlap(cW, fH3, frameWidthMm, hasMount ? mountSize : 0, mountOutside, defaultFrameW);
             actualOverlapX = ov.actualOverlapX;
             actualOverlapY = ov.actualOverlapY;
             mountExtX = ov.mountExtX;
@@ -1002,6 +1057,9 @@ window.addEventListener('DOMContentLoaded', () => {
                         pCtx.fillRect(fX + fW - sFrame, fY, sFrame, fH);
                     }
                 } catch(e) {}
+            }
+            if (frameOverlayActive) {
+                applyFrameOverlay(pCtx, fX, fY, fW, fH, sFrame, document.getElementById('frameOverlayColour').value);
             }
         }
 
@@ -1343,15 +1401,64 @@ window.addEventListener('DOMContentLoaded', () => {
     ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); updateDpiNote(); }));
     document.getElementById('mountSize').addEventListener('input', updateFramePreview);
     document.getElementById('mountSize').addEventListener('change', updateFramePreview);
-    document.getElementById('mountColour').addEventListener('change', updateFramePreview);
     document.getElementById('mountOutside').addEventListener('change', updateFramePreview);
     ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', updateFramePreview));
     document.getElementById('frameThickness').addEventListener('input', updateFramePreview);
     document.getElementById('frameThickness').addEventListener('change', updateFramePreview);
+    document.getElementById('mountColourCustom').addEventListener('input', updateFramePreview);
+    document.getElementById('mountColourCustom').addEventListener('change', updateFramePreview);
+
+    let frameOverlayActive = false;
+    function setOverlayActive(active, hex) {
+        frameOverlayActive = !!active;
+        const picker = document.getElementById('frameOverlayColour');
+        const resetBtn = document.getElementById('frameOverlayReset');
+        if (active && hex) {
+            picker.value = hex.toLowerCase();
+            picker.style.opacity = '1';
+            picker.title = 'Frame overlay (' + hex.toUpperCase() + ')';
+            resetBtn.style.display = 'block';
+        } else {
+            picker.style.opacity = '0.4';
+            picker.title = 'Frame overlay (none)';
+            resetBtn.style.display = 'none';
+        }
+    }
+    document.getElementById('frameOverlayColour').addEventListener('input', function() {
+        setOverlayActive(true, this.value);
+        updateFramePreview();
+    });
+    document.getElementById('frameOverlayReset').addEventListener('click', function(e) {
+        e.stopPropagation();
+        setOverlayActive(false);
+        updateFramePreview();
+    });
+
+    function updateMountSwatch() {
+        const sel = document.getElementById('mountColour');
+        const wrap = document.getElementById('mountSwatchWrap');
+        wrap.style.display = sel.value === '__custom__' ? 'inline-block' : 'none';
+    }
+    document.getElementById('mountColour').addEventListener('change', function() {
+        updateMountSwatch();
+        updateFramePreview();
+    });
+    document.getElementById('mountColourReset').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('mountColour').value = 'black';
+        updateMountSwatch();
+        updateFramePreview();
+    });
 
     function updateFrameThicknessRow(key) {
-        const row = document.getElementById('frameThicknessRow');
-        row.style.display = (key === 'BLACK' || key === 'WHITE' || key === 'MDF') ? 'block' : 'none';
+        if (key && key !== 'none') {
+            const defaultThick = FRAME_WIDTHS[key] || 80;
+            const input = document.getElementById('frameThickness');
+            if (input.dataset.lastKey !== key) {
+                input.value = defaultThick;
+                input.dataset.lastKey = key;
+            }
+        }
     }
 
     document.getElementById('frameSelect').addEventListener('change', async function() {
@@ -1384,7 +1491,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const cW = getNum('cW');
         const artworkWidth = cW - SIDE_MARGIN_MM * 2;
         const artworkHeight = fH3;
-        const frameWidthMm = hasFrame ? ((['BLACK','WHITE','MDF'].includes(selectedFrame)) ? getNum('frameThickness') : (FRAME_WIDTHS[selectedFrame] || 80)) : 0;
+        const frameWidthMm = hasFrame ? getNum('frameThickness') : 0;
 
         let actualOverlapX, actualOverlapY, mountExtX, mountExtY, visW_mm, visH_mm;
 
@@ -1393,7 +1500,8 @@ window.addEventListener('DOMContentLoaded', () => {
             mountExtX = mountSizeMm; mountExtY = mountSizeMm;
             visW_mm = artworkWidth; visH_mm = artworkHeight;
         } else {
-            const ov = calcOverlap(cW, artworkHeight, frameWidthMm, hasMount ? mountSizeMm : 0, mountOutside);
+            const defaultFrameWp = hasFrame ? (FRAME_WIDTHS[selectedFrame] || 80) : 0;
+            const ov = calcOverlap(cW, artworkHeight, frameWidthMm, hasMount ? mountSizeMm : 0, mountOutside, defaultFrameWp);
             actualOverlapX = ov.actualOverlapX;
             actualOverlapY = ov.actualOverlapY;
             mountExtX = ov.mountExtX;
@@ -1447,7 +1555,8 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         if (hasMount && !mountOutside) {
-            const mountColour = document.getElementById('mountColour').value;
+            let mountColour = document.getElementById('mountColour').value;
+            if (mountColour === '__custom__') mountColour = document.getElementById('mountColourCustom').value;
             const mc = mountColour === 'white' ? '#f5f5f5' : mountColour === 'black' ? '#111' : mountColour;
             pctx.fillStyle = mc;
             pctx.fillRect(mountX, mountY, outerW - sFrame * 2, sMount);
@@ -1494,10 +1603,14 @@ window.addEventListener('DOMContentLoaded', () => {
                     drawFrameAroundRect(pctx, frameImg, frameWidthMm, sf, fX, fY, fW, fH, selectedFrame);
                 } catch(e) {}
             }
+            if (frameOverlayActive) {
+                applyFrameOverlay(pctx, fX, fY, fW, fH, sFrame, document.getElementById('frameOverlayColour').value);
+            }
         }
 
         if (hasMount && mountOutside) {
-            const mountColour = document.getElementById('mountColour').value;
+            let mountColour = document.getElementById('mountColour').value;
+            if (mountColour === '__custom__') mountColour = document.getElementById('mountColourCustom').value;
             const mc = mountColour === 'white' ? '#f5f5f5' : mountColour === 'black' ? '#111' : mountColour;
             pctx.fillStyle = mc;
             pctx.fillRect(0, 0, outerW, sMountExtY);
