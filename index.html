@@ -1649,7 +1649,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const loader = document.getElementById('loader');
         const raw = urlInput.value.trim();
         if (!raw) return;
-        statusEl.style.display = 'block';
+        statusEl.style.display = 'none';
         statusEl.style.color = '#888';
         statusEl.textContent = 'Fetching page...';
         try {
@@ -1674,18 +1674,19 @@ window.addEventListener('DOMContentLoaded', () => {
                 upImg = newImg;
                 imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0;
                 loader.style.display = 'none';
-                statusEl.style.color = '#27ae60';
-                statusEl.textContent = 'Image loaded successfully';
+                statusEl.style.display = 'none';
                 updateDpiNote(); drawCnv(); updateFramePreview();
             };
             newImg.onerror = () => {
                 loader.style.display = 'none';
+                statusEl.style.display = 'block';
                 statusEl.style.color = '#c00';
                 statusEl.textContent = 'Could not load image';
             };
             newImg.src = proxiedImg;
         } catch (err) {
             loader.style.display = 'none';
+            statusEl.style.display = 'block';
             statusEl.style.color = '#c00';
             statusEl.textContent = err.message || 'Failed to fetch image';
         }
