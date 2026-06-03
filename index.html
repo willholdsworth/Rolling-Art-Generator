@@ -1212,7 +1212,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const scl = getImgScale(upImg, aW, fH3);
             const sW = upImg.width * scl, sH = upImg.height * scl;
             const imgX = (SIDE_MARGIN_MM + (aW - sW) / 2 + imgXOffset) * 72 / 25.4;
-            const imgY = (aFH2 + imgYOffset) * 72 / 25.4;
+            const imgY = (aFH2 + (fH3 - sH) / 2 + imgYOffset) * 72 / 25.4;
             const tc = document.createElement('canvas');
             tc.width = upImg.width; tc.height = upImg.height;
             tc.getContext('2d').drawImage(upImg, 0, 0);
@@ -1393,7 +1393,7 @@ window.addEventListener('DOMContentLoaded', () => {
         imgZoomOffset += 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3); }
+        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH > fH3 ? 10 : 0); }
         drawCnv(); updateFramePreview(); updateDpiNote();
     });
 
