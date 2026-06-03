@@ -1362,7 +1362,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const scl = getImgScale(upImg, aW, fH3);
         const sW = upImg.width * scl, sH = upImg.height * scl;
         imgXOffset = clampOffsetX((cx - rect.left) / pxPerMm - dragStartX, sW, aW);
-        imgYOffset = clampOffsetY((cy - rect.top) / pxPerMm - artworkTopMm - dragStartY, sH, fH3, sH > fH3 ? 10 : 0);
+        imgYOffset = clampOffsetY((cy - rect.top) / pxPerMm - artworkTopMm - dragStartY, sH, fH3, sH >= fH3 ? 10 : 0);
         scheduleDraw(); updateFramePreview();
     }
 
@@ -1393,7 +1393,7 @@ window.addEventListener('DOMContentLoaded', () => {
         imgZoomOffset += 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH > fH3 ? 10 : 0); }
+        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
         drawCnv(); updateFramePreview(); updateDpiNote();
     });
 
