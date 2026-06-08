@@ -1646,6 +1646,42 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('upBtn').addEventListener('click', () => document.getElementById('imgLdr').click());
     document.getElementById('rmvBtn').addEventListener('click', rmvImg);
 
+    const PROXIES = [
+        u => `https://proxy.will-holdsworth-design.workers.dev/?url=${encodeURIComponent(u)}`,
+        u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+        u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        u => `https://thingproxy.freeboard.io/fetch/${u}`
+    ];
+
+    async function fetchTextViaProxies(url) {
+        for (const build of PROXIES) {
+            try {
+                const res = await fetch(build(url), { headers: { 'Accept': 'text/html' } });
+                if (res.ok) {
+                    const text = await res.text();
+                    if (text) return text;
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+        throw new Error('Page fetch failed: all sources unavailable');
+    }
+
+    function loadImageViaProxies(url, onload, onerror) {
+        let i = 0;
+        const tryNext = () => {
+            if (i >= PROXIES.length) { onerror(); return; }
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => onload(img);
+            img.onerror = () => { i += 1; tryNext(); };
+            img.src = PROXIES[i](url);
+        };
+        tryNext();
+    }
+
     document.getElementById('fetchUrlBtn').addEventListener('click', async () => {
         const urlInput = document.getElementById('imgUrl');
         const statusEl = document.getElementById('urlStatus');
@@ -1656,10 +1692,7 @@ window.addEventListener('DOMContentLoaded', () => {
         statusEl.style.color = '#888';
         statusEl.textContent = 'Fetching page...';
         try {
-            const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(raw);
-            const res = await fetch(proxyUrl, { headers: { 'Accept': 'text/html' } });
-            if (!res.ok) throw new Error('Page fetch failed (' + res.status + ')');
-            const html = await res.text();
+            const html = await fetchTextViaProxies(raw);
             const canvasM = html.match(/class="canvas"[\s\S]{0,400}<img[^>]+src="([^"]+)"/);
             let imgSrc = canvasM ? canvasM[1].trim() : null;
             if (!imgSrc) {
@@ -1670,23 +1703,18 @@ window.addEventListener('DOMContentLoaded', () => {
             imgSrc = imgSrc.replace(/\/photos\/[^/]+\//, '/photos/500/');
             statusEl.textContent = 'Loading image...';
             loader.style.display = 'block';
-            const proxiedImg = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(imgSrc);
-            const newImg = new Image();
-            newImg.crossOrigin = 'anonymous';
-            newImg.onload = () => {
+            loadImageViaProxies(imgSrc, (newImg) => {
                 upImg = newImg;
                 imgXOffset = 0; imgYOffset = 0; imgZoomOffset = 0;
                 loader.style.display = 'none';
                 statusEl.style.display = 'none';
                 updateDpiNote(); drawCnv(); updateFramePreview();
-            };
-            newImg.onerror = () => {
+            }, () => {
                 loader.style.display = 'none';
                 statusEl.style.display = 'block';
                 statusEl.style.color = '#c00';
                 statusEl.textContent = 'Could not load image';
-            };
-            newImg.src = proxiedImg;
+            });
         } catch (err) {
             loader.style.display = 'none';
             statusEl.style.display = 'block';
