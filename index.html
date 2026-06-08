@@ -840,9 +840,6 @@ window.addEventListener('DOMContentLoaded', () => {
         ctx.fillText(fn, 15, fH1 + 15);
     }
 
-    // ─── Shared DPI / viewing-distance calculation ──────────────────────────────
-    // Returns null if no image loaded, or an object with minDpi, distanceM, distanceFt,
-    // reqW, reqH, pass.
     function calcDpiInfo() {
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
