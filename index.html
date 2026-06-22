@@ -1134,7 +1134,7 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.translate(rightLineX + guideGap, rightMid);
             pCtx.rotate(-Math.PI / 2);
             pCtx.textAlign = 'center';
-            pCtx.fillText(`${(totalHeightMm - excessUpMm).toFixed(1)}mm`, 0, 5);
+            pCtx.fillText(`${totalHeightMm.toFixed(1)}mm`, 0, 5);
             pCtx.restore();
         }
 
