@@ -143,7 +143,6 @@
 <body>
 <div class="split-layout">
     <div class="left-panel">
-        <h1>ROLLING ARTWORK CANVAS GENERATOR™</h1>
         <div class="input-section">
             <div class="two-col">
                 <div>
@@ -991,7 +990,12 @@ window.addEventListener('DOMContentLoaded', () => {
         const aY = innerY + (sVisH - sAH) / 2;
 
         pCtx.fillStyle = '#808080';
-        pCtx.fillRect(aX, aY, sAW, sAH);
+        const sExcessUp = excessUpMm * sf;
+        if (!hasFrame && !hasMount) {
+            pCtx.fillRect(aX, aY + sExcessUp, sAW, sAH - sExcessUp);
+        } else {
+            pCtx.fillRect(aX, aY, sAW, sAH);
+        }
 
         if (upImg) {
             const fit = getImgFitSize(upImg, artworkWidth, artworkHeight);
@@ -999,7 +1003,11 @@ window.addEventListener('DOMContentLoaded', () => {
             const ix = aX + (sAW - sW) / 2 + imgXOffset * sf;
             const iy = aY + (sAH - sH) / 2 + imgYOffset * sf;
             pCtx.save();
-            pCtx.beginPath(); pCtx.rect(innerX, innerY, sVisW, sVisH); pCtx.clip();
+            if (!hasFrame && !hasMount) {
+                pCtx.beginPath(); pCtx.rect(innerX, innerY + sExcessUp, sVisW, sVisH - sExcessUp); pCtx.clip();
+            } else {
+                pCtx.beginPath(); pCtx.rect(innerX, innerY, sVisW, sVisH); pCtx.clip();
+            }
             pCtx.drawImage(upImg, ix, iy, sW, sH);
             pCtx.restore();
         }
@@ -1318,6 +1326,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const aW = cW - SIDE_MARGIN_MM * 2;
         const fit = getImgFitSize(upImg, aW, fH3);
         const sW = fit.sW, sH = fit.sH;
+        const limitX = sW >= aW ? (sW - aW) / 2 : 0;
         const half = sH >= fH3 ? (sH - fH3) / 2 : 0;
         const limitUp = half + 10;
         const limitDown = half;
@@ -1370,6 +1379,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const aW = cW - SIDE_MARGIN_MM * 2;
         const fit = getImgFitSize(upImg, aW, fH3);
         const sW = fit.sW, sH = fit.sH;
+        imgXOffset = clampOffsetX((cx - rect.left) / pxPerMm - dragStartX, sW, aW);
         imgYOffset = clampOffsetY((cy - rect.top) / pxPerMm - artworkTopMm - dragStartY, sH, fH3, sH >= fH3 ? 10 : 0);
         scheduleDraw(); updateFramePreview();
     }
@@ -1384,14 +1394,6 @@ window.addEventListener('DOMContentLoaded', () => {
     cnv.addEventListener('touchmove', e => { e.preventDefault(); doDrag(e); }, { passive: false });
     cnv.addEventListener('touchend', endDrag);
     cnv.addEventListener('touchcancel', endDrag);
-
-    document.getElementById('fitModeChk').addEventListener('change', (e) => {
-        fitMode = e.target.checked ? 'squeeze' : 'cover';
-        const cW = getNum('cW'), fH3 = getNum('fH3');
-        const aW = cW - SIDE_MARGIN_MM * 2;
-        if (upImg) { const fit = getImgFitSize(upImg, aW, fH3); const sW = fit.sW, sH = fit.sH; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
-        drawCnv(); updateFramePreview(); updateDpiNote();
-    });
 
     document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
     document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
@@ -1411,6 +1413,14 @@ window.addEventListener('DOMContentLoaded', () => {
         const aW = cW - SIDE_MARGIN_MM * 2;
         if (upImg) { const fit = getImgFitSize(upImg, aW, fH3); const sW = fit.sW, sH = fit.sH; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
         drawCnv(); updateFramePreview(); updateDpiNote();
+    });
+
+    document.getElementById('fitModeChk').addEventListener('change', (e) => {
+        fitMode = e.target.checked ? 'squeeze' : 'cover';
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        const aW = cW - SIDE_MARGIN_MM * 2;
+        if (upImg) { const fit = getImgFitSize(upImg, aW, fH3); const sW = fit.sW, sH = fit.sH; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
+        scheduleDraw(); updateFramePreview(); updateDpiNote();
     });
 
     ['leftArrow', 'rightArrow', 'upArrow', 'downArrow'].forEach(id => {
