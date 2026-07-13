@@ -271,6 +271,9 @@
             <button class="secondary-btn" id="upBtn" style="min-width:unset;font-size:11px;padding:4px 8px;"><i class="fas fa-plus"></i> Add Image</button>
             <button class="green-btn" id="jpgBtn"><i class="fas fa-download"></i> Download Preview</button>
             <button class="red-btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-left:10px;">
+                <input type="checkbox" id="fitModeChk"> Fit whole image (stretch, no crop)
+            </label>
         </div>
 
         <div id="loader" class="loader"></div>
@@ -712,6 +715,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let activeTemplate = 'RA5';
     let isDragging = false, dragStartX = 0, dragStartY = 0;
     let imgZoomOffset = 0;
+    let fitMode = 'cover';
 
     function getNum(id) { return parseFloat(document.getElementById(id).value) || 0; }
     function setStatus(msg, colour) {}
@@ -809,10 +813,17 @@ window.addEventListener('DOMContentLoaded', () => {
         return Math.max(effW / img.width, effH / img.height);
     }
 
+    function getImgFitSize(img, aW, h) {
+        const effW = Math.max(1, aW + imgZoomOffset * 2);
+        const effH = Math.max(1, h + imgZoomOffset * 2);
+        if (fitMode === 'squeeze') return { sW: effW, sH: effH };
+        const scl = getImgScale(img, aW, h);
+        return { sW: img.width * scl, sH: img.height * scl };
+    }
+
     function drawImgPreview(img, cW, y, h) {
         const aW = cW - SIDE_MARGIN_MM * 2;
-        const scl = getImgScale(img, aW, h);
-        const sW = img.width * scl, sH = img.height * scl;
+        const { sW, sH } = getImgFitSize(img, aW, h);
         const xPos = SIDE_MARGIN_MM + (aW - sW) / 2 + imgXOffset;
         const yPos = y + (h - sH) / 2 + imgYOffset;
         ctx.save();
@@ -912,8 +923,7 @@ window.addEventListener('DOMContentLoaded', () => {
             visH_mm = ov.visH_mm;
         }
 
-        const scl = upImg ? getImgScale(upImg, artworkWidth, artworkHeight) : 1;
-        const sHImg = upImg ? upImg.height * scl : 0;
+        const sHImg = upImg ? getImgFitSize(upImg, artworkWidth, artworkHeight).sH : 0;
         const normalLimitY = sHImg - artworkHeight;
         const excessUpMm = upImg && imgYOffset < -normalLimitY ? Math.abs(imgYOffset) - normalLimitY : 0;
 
@@ -984,8 +994,8 @@ window.addEventListener('DOMContentLoaded', () => {
         pCtx.fillRect(aX, aY, sAW, sAH);
 
         if (upImg) {
-            const imgScl = getImgScale(upImg, artworkWidth, artworkHeight);
-            const sW = upImg.width * imgScl * sf, sH = upImg.height * imgScl * sf;
+            const fit = getImgFitSize(upImg, artworkWidth, artworkHeight);
+            const sW = fit.sW * sf, sH = fit.sH * sf;
             const ix = aX + (sAW - sW) / 2 + imgXOffset * sf;
             const iy = aY + (sAH - sH) / 2 + imgYOffset * sf;
             pCtx.save();
@@ -1209,8 +1219,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (activeTemplate !== 'RA7B' && upImg) {
             const aW = cW - SIDE_MARGIN_MM * 2;
-            const scl = getImgScale(upImg, aW, fH3);
-            const sW = upImg.width * scl, sH = upImg.height * scl;
+            const fit = getImgFitSize(upImg, aW, fH3);
+            const sW = fit.sW, sH = fit.sH;
             const imgX = (SIDE_MARGIN_MM + (aW - sW) / 2 + imgXOffset) * 72 / 25.4;
             const imgY = (aFH2 + (fH3 - sH) / 2 + imgYOffset) * 72 / 25.4;
             const tc = document.createElement('canvas');
@@ -1239,8 +1249,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const aW = cW - SIDE_MARGIN_MM * 2;
         let imgMeas = '';
         if (upImg) {
-            const scl = getImgScale(upImg, aW, fH3);
-            const sW = upImg.width * scl, sH = upImg.height * scl;
+            const fit = getImgFitSize(upImg, aW, fH3);
+            const sW = fit.sW, sH = fit.sH;
             const normalLimitY = sH - fH3;
             const excessUp = imgYOffset < -normalLimitY ? Math.abs(imgYOffset) - normalLimitY : 0;
             const visW = Math.min(sW, aW).toFixed(1);
@@ -1280,8 +1290,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!upImg) return;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        const scl = getImgScale(upImg, aW, fH3);
-        const sW = upImg.width * scl, sH = upImg.height * scl;
+        const fit = getImgFitSize(upImg, aW, fH3);
+        const sW = fit.sW, sH = fit.sH;
         const amt = 3 * 72 / 25.4;
         if (vertical) {
             if (sH >= fH3) {
@@ -1306,9 +1316,8 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!upImg) { ids.forEach(id => document.getElementById(id).disabled = true); return; }
         const fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        const scl = getImgScale(upImg, aW, fH3);
-        const sW = upImg.width * scl, sH = upImg.height * scl;
-        const limitX = sW >= aW ? (sW - aW) / 2 : 0;
+        const fit = getImgFitSize(upImg, aW, fH3);
+        const sW = fit.sW, sH = fit.sH;
         const half = sH >= fH3 ? (sH - fH3) / 2 : 0;
         const limitUp = half + 10;
         const limitDown = half;
@@ -1359,9 +1368,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const pxPerMm = rect.width / cW;
         const artworkTopMm = fH1 + fH2;
         const aW = cW - SIDE_MARGIN_MM * 2;
-        const scl = getImgScale(upImg, aW, fH3);
-        const sW = upImg.width * scl, sH = upImg.height * scl;
-        imgXOffset = clampOffsetX((cx - rect.left) / pxPerMm - dragStartX, sW, aW);
+        const fit = getImgFitSize(upImg, aW, fH3);
+        const sW = fit.sW, sH = fit.sH;
         imgYOffset = clampOffsetY((cy - rect.top) / pxPerMm - artworkTopMm - dragStartY, sH, fH3, sH >= fH3 ? 10 : 0);
         scheduleDraw(); updateFramePreview();
     }
@@ -1377,6 +1385,14 @@ window.addEventListener('DOMContentLoaded', () => {
     cnv.addEventListener('touchend', endDrag);
     cnv.addEventListener('touchcancel', endDrag);
 
+    document.getElementById('fitModeChk').addEventListener('change', (e) => {
+        fitMode = e.target.checked ? 'squeeze' : 'cover';
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        const aW = cW - SIDE_MARGIN_MM * 2;
+        if (upImg) { const fit = getImgFitSize(upImg, aW, fH3); const sW = fit.sW, sH = fit.sH; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
+        drawCnv(); updateFramePreview(); updateDpiNote();
+    });
+
     document.getElementById('leftArrow').addEventListener('click', () => shiftImage('left'));
     document.getElementById('rightArrow').addEventListener('click', () => shiftImage('right'));
     document.getElementById('upArrow').addEventListener('click', () => shiftImage('up', true));
@@ -1386,14 +1402,14 @@ window.addEventListener('DOMContentLoaded', () => {
         imgZoomOffset -= 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, 10); }
+        if (upImg) { const fit = getImgFitSize(upImg, aW, fH3); const sW = fit.sW, sH = fit.sH; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, 10); }
         drawCnv(); updateFramePreview(); updateDpiNote();
     });
     document.getElementById('zoomInBtn').addEventListener('click', () => {
         imgZoomOffset += 2.5;
         const cW = getNum('cW'), fH3 = getNum('fH3');
         const aW = cW - SIDE_MARGIN_MM * 2;
-        if (upImg) { const scl = getImgScale(upImg, aW, fH3); const sW = upImg.width * scl, sH = upImg.height * scl; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
+        if (upImg) { const fit = getImgFitSize(upImg, aW, fH3); const sW = fit.sW, sH = fit.sH; imgXOffset = clampOffsetX(imgXOffset, sW, aW); imgYOffset = clampOffsetY(imgYOffset, sH, fH3, sH >= fH3 ? 10 : 0); }
         drawCnv(); updateFramePreview(); updateDpiNote();
     });
 
@@ -1560,8 +1576,8 @@ window.addEventListener('DOMContentLoaded', () => {
         pctx.fillRect(aX, aY, sAW, sAH);
 
         if (upImg) {
-            const scl = getImgScale(upImg, artworkWidth, artworkHeight);
-            const sW = upImg.width * scl * sf, sH = upImg.height * scl * sf;
+            const fit = getImgFitSize(upImg, artworkWidth, artworkHeight);
+            const sW = fit.sW * sf, sH = fit.sH * sf;
             const ix = aX + (sAW - sW) / 2 + imgXOffset * sf;
             const iy = aY + (sAH - sH) / 2 + imgYOffset * sf;
             pctx.save();
