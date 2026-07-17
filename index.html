@@ -1255,17 +1255,24 @@ window.addEventListener('DOMContentLoaded', () => {
         pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
         pdf.text(fn, 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4);
         const aW = cW - SIDE_MARGIN_MM * 2;
-        let imgMeas = '';
+        let visW = null, visH = null;
         if (upImg) {
             const fit = getImgFitSize(upImg, aW, fH3);
             const sW = fit.sW, sH = fit.sH;
             const normalLimitY = sH - fH3;
             const excessUp = imgYOffset < -normalLimitY ? Math.abs(imgYOffset) - normalLimitY : 0;
-            const visW = Math.min(sW, aW).toFixed(1);
-            const visH = (Math.min(sH, fH3) - excessUp).toFixed(1);
-            imgMeas = ` | IMAGE WIDTH: ${visW}mm | IMAGE HEIGHT: ${visH}mm`;
+            visW = Math.min(sW, aW).toFixed(1);
+            visH = (Math.min(sH, fH3) - excessUp).toFixed(1);
         }
-        const meas = `ZIP WELD AREA: ${fH1}mm | GAP BELOW ZIP: ${fH2}mm | ARTWORK HEIGHT: ${fH3}mm${imgMeas} | PDF WIDTH: ${cW}mm | PDF HEIGHT: ${cH}mm`;
+        const measParts = [];
+        if (fH1) measParts.push(`ZIP WELD AREA: ${fH1}mm`);
+        if (fH2) measParts.push(`GAP BELOW ZIP: ${fH2}mm`);
+        if (fH3) measParts.push(`ARTWORK HEIGHT: ${fH3}mm`);
+        if (visW !== null && activeTemplate !== 'RA7' && parseFloat(visW) !== 0) measParts.push(`IMAGE WIDTH: ${visW}mm`);
+        if (visH !== null && parseFloat(visH) !== 0) measParts.push(`IMAGE HEIGHT: ${visH}mm`);
+        if (cW) measParts.push(`PDF WIDTH: ${cW}mm`);
+        if (cH) measParts.push(`PDF HEIGHT: ${cH}mm`);
+        const meas = measParts.join(' | ');
         pdf.text(meas, cWpt - 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4, { align: 'right' });
         pdf.save(`${fn}.pdf`);
     }
