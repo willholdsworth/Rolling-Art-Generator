@@ -144,14 +144,18 @@
 <div class="split-layout">
     <div class="left-panel">
         <div class="input-section">
-            <div class="two-col">
+            <div class="three-col">
                 <div>
                     <label for="cW">CANVAS WIDTH (mm):</label>
                     <input type="number" id="cW" value="1296">
                 </div>
                 <div>
                     <label for="cH">CANVAS HEIGHT (mm):</label>
-                    <input type="number" id="cH" value="1825">
+                    <input type="number" id="cH" value="844">
+                </div>
+                <div>
+                    <label for="partBHeight">PART B HEIGHT (mm):</label>
+                    <input type="number" id="partBHeight" value="993" step="0.1">
                 </div>
             </div>
 
@@ -251,8 +255,10 @@
         </div>
 
         <div class="button-group">
-            <button class="secondary-btn" id="ra5Btn">RA5</button>
-            <button class="secondary-btn" id="ra6Btn">RA6</button>
+            <button class="secondary-btn" id="ra5aBtn">RA5 (A)</button>
+            <button class="secondary-btn" id="ra5bBtn">RA5 (B)</button>
+            <button class="secondary-btn" id="ra6aBtn">RA6 (A)</button>
+            <button class="secondary-btn" id="ra6bBtn">RA6 (B)</button>
             <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
             <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
         </div>
@@ -710,8 +716,8 @@ window.addEventListener('DOMContentLoaded', () => {
     let upImg;
     let imgXOffset = 0, imgYOffset = 0;
     let intervalId = null;
-    let drawExtraLine = false;
-    let activeTemplate = 'RA5';
+    let drawExtraLine = true;
+    let activeTemplate = 'RA5A';
     let isDragging = false, dragStartX = 0, dragStartY = 0;
     let imgZoomOffset = 0;
     let fitMode = 'cover';
@@ -733,6 +739,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const STANDARD_EXTERNAL = {
         RA5:  { w: 1501, h: 986  },
         RA6:  { w: 1721, h: 1116 },
+        RA5A: { w: 1501, h: 986  },
+        RA6A: { w: 1721, h: 1116 },
         RA7:  { w: 1991, h: 1266 },
         RA7B: { w: 1902, h: 1326 },
     };
@@ -793,6 +801,9 @@ window.addEventListener('DOMContentLoaded', () => {
         ctx.save();
         ctx.scale(sf * dpr, sf * dpr);
         const aW = cW - SIDE_MARGIN_MM * 2;
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(0, 0, SIDE_MARGIN_MM, cH);
+        ctx.fillRect(cW - SIDE_MARGIN_MM, 0, SIDE_MARGIN_MM, cH);
         ctx.fillStyle = 'grey';
         ctx.fillRect(SIDE_MARGIN_MM, fH1 + fH2, aW, fH3);
         if (upImg) drawImgPreview(upImg, cW, fH1 + fH2, fH3);
@@ -844,8 +855,11 @@ window.addEventListener('DOMContentLoaded', () => {
     function drawText(cW, cH, fH1) {
         ctx.font = '2.5mm Arial'; ctx.fillStyle = 'black';
         ctx.textAlign = 'center';
-        ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
-        ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
+        const isPartA = activeTemplate === 'RA5A' || activeTemplate === 'RA6A' || activeTemplate === 'RA7';
+        const isPartB = activeTemplate === 'RA5B' || activeTemplate === 'RA6B';
+        if (!isPartB) ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
+        if (isPartA) ctx.fillText('ATTACH PART B TO THIS FACE', cW / 2, cH - 6);
+        else ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
         ctx.textAlign = 'left';
         ctx.fillText(fn, 15, fH1 + 15);
     }
@@ -872,7 +886,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function updateDpiNote() {
         const noteEl = document.getElementById('dpiNote');
-        if (activeTemplate === 'RA7B') { noteEl.style.display = 'none'; return; }
+        if (activeTemplate === 'RA7B' || activeTemplate === 'RA5B' || activeTemplate === 'RA6B') { noteEl.style.display = 'none'; return; }
         const info = calcDpiInfo();
         noteEl.style.display = 'block';
         if (!upImg || info.minDpi === null) {
@@ -1225,7 +1239,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const cWpt = cW * 72 / 25.4, cHpt = cH * 72 / 25.4;
         const pdf = new jsPDF({ orientation: cW > cH ? 'landscape' : 'portrait', unit: 'pt', format: [cWpt, cHpt] });
 
-        if (activeTemplate !== 'RA7B' && upImg) {
+        if (activeTemplate !== 'RA7B' && activeTemplate !== 'RA5B' && activeTemplate !== 'RA6B' && upImg) {
             const aW = cW - SIDE_MARGIN_MM * 2;
             const fit = getImgFitSize(upImg, aW, fH3);
             const sW = fit.sW, sH = fit.sH;
@@ -1238,10 +1252,11 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         pdf.setFillColor(255, 255, 255);
-        pdf.rect(0, 0, cWpt, aFH2 * 72 / 25.4, 'F');
-        pdf.rect(0, aH * 72 / 25.4, cWpt, (cH - aH) * 72 / 25.4, 'F');
-        pdf.rect(0, aFH2 * 72 / 25.4, SIDE_MARGIN_MM * 72 / 25.4, fH3 * 72 / 25.4, 'F');
-        pdf.rect((cW - SIDE_MARGIN_MM) * 72 / 25.4, aFH2 * 72 / 25.4, SIDE_MARGIN_MM * 72 / 25.4, fH3 * 72 / 25.4, 'F');
+        pdf.rect(SIDE_MARGIN_MM * 72 / 25.4, 0, (cW - SIDE_MARGIN_MM * 2) * 72 / 25.4, aFH2 * 72 / 25.4, 'F');
+        pdf.rect(SIDE_MARGIN_MM * 72 / 25.4, aH * 72 / 25.4, (cW - SIDE_MARGIN_MM * 2) * 72 / 25.4, (cH - aH) * 72 / 25.4, 'F');
+        pdf.setFillColor(51, 51, 51);
+        pdf.rect(0, 0, SIDE_MARGIN_MM * 72 / 25.4, cHpt, 'F');
+        pdf.rect((cW - SIDE_MARGIN_MM) * 72 / 25.4, 0, SIDE_MARGIN_MM * 72 / 25.4, cHpt, 'F');
         pdf.setLineWidth(0.1 * 72 / 25.4);
         pdf.rect(0, 0, cWpt, cHpt);
         pdf.line(SIDE_MARGIN_MM * 72 / 25.4, 0, SIDE_MARGIN_MM * 72 / 25.4, cHpt);
@@ -1251,9 +1266,23 @@ window.addEventListener('DOMContentLoaded', () => {
         pdf.line(0, aH * 72 / 25.4, cWpt, aH * 72 / 25.4);
         if (drawExtraLine) { pdf.setLineWidth(1); pdf.line(0, (cH - 12) * 72 / 25.4, cWpt, (cH - 12) * 72 / 25.4); }
         pdf.setFont('Helvetica', 2 * 72 / 25.4);
-        pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
-        pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
+        const isPartA = activeTemplate === 'RA5A' || activeTemplate === 'RA6A' || activeTemplate === 'RA7';
+        const isPartB = activeTemplate === 'RA5B' || activeTemplate === 'RA6B';
+        if (!isPartB) pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+        if (isPartA) pdf.text('ATTACH PART B TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
+        else pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
         pdf.text(fn, 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4);
+        const pbHeight = getNum('partBHeight');
+        if (isPartA && pbHeight > 0) {
+            const pbWidth = cW;
+            const combined = cH + pbHeight - 12;
+            const lineX = 15 * 72 / 25.4, lineY = (fH1 + 23) * 72 / 25.4;
+            pdf.setFont('Helvetica', 'bold');
+            pdf.text('PART B REQUIRED - CUT BLANK CANVAS TO FOLLOWING DIMENSIONS ', lineX, lineY);
+            const boldW = pdf.getTextWidth('PART B REQUIRED - CUT BLANK CANVAS TO FOLLOWING DIMENSIONS ');
+            pdf.setFont('Helvetica', 'normal');
+            pdf.text(`| PART B HEIGHT: ${pbHeight}mm | PART B WIDTH: ${pbWidth}mm | COMBINED FINISHED HEIGHT: ${combined}mm`, lineX + boldW + (1.5 * 72 / 25.4), lineY);
+        }
         const aW = cW - SIDE_MARGIN_MM * 2;
         let visW = null, visH = null;
         if (upImg) {
@@ -1766,10 +1795,17 @@ window.addEventListener('DOMContentLoaded', () => {
         drawCnv();
     }
 
-    document.getElementById('ra5Btn').addEventListener('click', () => { setValues(1296, 1825, 12, 44, 776); drawExtraLine = false; activeTemplate = 'RA5'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra6Btn').addEventListener('click', () => { setValues(1516, 2100, 12, 37, 920); drawExtraLine = false; activeTemplate = 'RA6'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 46.5, 1057); drawExtraLine = true; activeTemplate = 'RA7'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1206, 12, 0, 0); drawExtraLine = false; activeTemplate = 'RA7B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    function setPartBDefaults(h) {
+        document.getElementById('partBHeight').value = h;
+    }
+
+    document.getElementById('ra5aBtn').addEventListener('click', () => { setValues(1296, 844, 12, 44, 776); setPartBDefaults(993); drawExtraLine = true; activeTemplate = 'RA5A'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra5bBtn').addEventListener('click', () => { setValues(1296, 993, 0, 0, 0); drawExtraLine = false; activeTemplate = 'RA5B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra6aBtn').addEventListener('click', () => { setValues(1516, 981, 12, 37, 920); setPartBDefaults(1131); drawExtraLine = true; activeTemplate = 'RA6A'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra6bBtn').addEventListener('click', () => { setValues(1516, 1131, 0, 0, 0); drawExtraLine = false; activeTemplate = 'RA6B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1127.5, 12, 46.5, 1057); setPartBDefaults(1284.5); drawExtraLine = true; activeTemplate = 'RA7'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1284.5, 12, 0, 0); drawExtraLine = false; activeTemplate = 'RA7B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+
 
     updateLayout();
     drawCnv();
