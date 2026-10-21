@@ -63,6 +63,7 @@
             color: #000000;
         }
         select { height: auto; padding: 6px 10px; cursor: pointer; }
+        input[readonly] { background: #f3f3f3; color: #555; cursor: default; }
         input:focus, select:focus { outline: none; box-shadow: inset 0 0 0 2px #000000; }
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 0; }
         .two-col label { margin-bottom: 4px; }
@@ -88,6 +89,7 @@
             white-space: normal;
         }
         .secondary-btn:hover:not(:disabled) { background: #303030; color: #ffffff; }
+        .secondary-btn.active-btn { background: #000000; color: #ffffff; }
         .arrow-btn { background: #606060; color: #ffffff; font-size: clamp(16px, 3vw, 24px); min-width: 30px; }
         .arrow-btn:hover:not(:disabled) { background: #303030; }
         .arrow-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -144,18 +146,14 @@
 <div class="split-layout">
     <div class="left-panel">
         <div class="input-section">
-            <div class="three-col">
+            <div class="two-col">
                 <div>
                     <label for="cW">CANVAS WIDTH (mm):</label>
                     <input type="number" id="cW" value="1296">
                 </div>
                 <div>
-                    <label for="cH">CANVAS HEIGHT (mm):</label>
-                    <input type="number" id="cH" value="844">
-                </div>
-                <div>
-                    <label for="partBHeight">PART B HEIGHT (mm):</label>
-                    <input type="number" id="partBHeight" value="993" step="0.1">
+                    <label for="totalH">TOTAL HEIGHT A+B (mm):</label>
+                    <input type="number" id="totalH" value="1825" step="0.1">
                 </div>
             </div>
 
@@ -171,6 +169,17 @@
                 <div>
                     <label for="fH3">ARTWORK HEIGHT (DEFAULT 776mm):</label>
                     <input type="number" id="fH3" value="776" step="0.1">
+                </div>
+            </div>
+
+            <div class="two-col" style="margin-top:8px;">
+                <div>
+                    <label for="cH">PART A HEIGHT (mm):</label>
+                    <input type="number" id="cH" value="844" readonly>
+                </div>
+                <div>
+                    <label for="partBHeight">PART B HEIGHT INC. 12mm OVERLAP (mm):</label>
+                    <input type="number" id="partBHeight" value="993" readonly>
                 </div>
             </div>
 
@@ -237,6 +246,7 @@
                     <input type="number" id="targetH" placeholder="If Known...">
                 </div>
             </div>
+            <div id="overallWarn" style="display:none;font-size:11px;color:#c00;margin-top:4px;font-weight:600;">CUSTOM SIZE: ENTER OVERALL WIDTH AND HEIGHT FROM THE TECHNICAL DRAWING BEFORE DOWNLOADING THE PROOF.</div>
 
             <div style="margin-top:8px;">
                 <label for="fn">FILE NAME:</label>
@@ -255,12 +265,10 @@
         </div>
 
         <div class="button-group">
-            <button class="secondary-btn" id="ra5aBtn">RA5 (A)</button>
-            <button class="secondary-btn" id="ra5bBtn">RA5 (B)</button>
-            <button class="secondary-btn" id="ra6aBtn">RA6 (A)</button>
-            <button class="secondary-btn" id="ra6bBtn">RA6 (B)</button>
-            <button class="secondary-btn" id="ra7aBtn">RA7 (A)</button>
-            <button class="secondary-btn" id="ra7bBtn">RA7 (B)</button>
+            <button class="secondary-btn" id="ra5aBtn">RA5</button>
+            <button class="secondary-btn" id="ra6aBtn">RA6</button>
+            <button class="secondary-btn" id="ra7aBtn">RA7</button>
+            <button class="secondary-btn" id="customBtn" style="display:none;">CUSTOM</button>
         </div>
 
         <input type="file" id="imgLdr" style="display:none;"/>
@@ -283,7 +291,6 @@
 
         <div id="loader" class="loader"></div>
         <div id="dpiNote">
-            <!-- Lines injected by updateDpiNote() -->
         </div>
         
         <div class="frame-preview-section" id="framePreviewSection" style="display:none;">
@@ -717,7 +724,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let imgXOffset = 0, imgYOffset = 0;
     let intervalId = null;
     let drawExtraLine = true;
-    let activeTemplate = 'RA5A';
+    let activeTemplate = 'RA5';
     let isDragging = false, dragStartX = 0, dragStartY = 0;
     let imgZoomOffset = 0;
     let fitMode = 'cover';
@@ -736,20 +743,58 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const SIDE_MARGIN_MM = 10;
 
+    const OVERLAP_MM = 12;
+    const CUSTOM_EXTERNAL_ALLOWANCE_MM = 205;
+
     const STANDARD_EXTERNAL = {
-        RA5:  { w: 1501, h: 986  },
-        RA6:  { w: 1721, h: 1116 },
-        RA5A: { w: 1501, h: 986  },
-        RA6A: { w: 1721, h: 1116 },
-        RA7:  { w: 1991, h: 1266 },
-        RA7B: { w: 1902, h: 1326 },
+        RA5: { w: 1501, h: 986  },
+        RA6: { w: 1721, h: 1116 },
+        RA7: { w: 1991, h: 1266 },
     };
+
+    function round1(v) { return Math.round(v * 10) / 10; }
+
+    function syncHeights() {
+        const partA = round1(getNum('fH1') + getNum('fH2') + getNum('fH3') + OVERLAP_MM);
+        document.getElementById('cH').value = partA;
+        const total = getNum('totalH');
+        const partB = round1(total - partA + OVERLAP_MM);
+        document.getElementById('partBHeight').value = total > 0 && partB > OVERLAP_MM ? partB : '';
+        updateOverallWarn();
+    }
+
+    function validDims() {
+        const cW = getNum('cW'), fH3 = getNum('fH3');
+        return cW > SIDE_MARGIN_MM * 2 + 1 && fH3 > 0 && getNum('cH') > 0;
+    }
+
+    function needsOverall() {
+        return activeTemplate === 'CUSTOM' && (!(getNum('targetW') > 0) || !(getNum('targetH') > 0));
+    }
+
+    function updateOverallWarn() {
+        const show = needsOverall();
+        document.getElementById('overallWarn').style.display = show ? 'block' : 'none';
+        ['targetW', 'targetH'].forEach(id => {
+            const el = document.getElementById(id);
+            el.style.borderColor = show && !(getNum(id) > 0) ? '#c00' : '#000';
+        });
+        const btn = document.getElementById('jpgBtn');
+        btn.disabled = show;
+        btn.style.opacity = show ? '0.5' : '1';
+        btn.style.cursor = show ? 'not-allowed' : 'pointer';
+        btn.title = show ? 'Enter overall width and height first' : '';
+    }
+
+    function getExternal(cW, fH3) {
+        return STANDARD_EXTERNAL[activeTemplate] || { w: cW + CUSTOM_EXTERNAL_ALLOWANCE_MM, h: fH3 + CUSTOM_EXTERNAL_ALLOWANCE_MM };
+    }
 
     function calcOverlap(cW, fH3, frameWidthMm, mountSizeMm, mountOutside, defaultFrameWidthMm) {
         const totalEdge = frameWidthMm + (mountOutside ? 0 : mountSizeMm);
         const tW = getNum('targetW');
         const tH = getNum('targetH');
-        const stdExt = STANDARD_EXTERNAL[activeTemplate] || STANDARD_EXTERNAL.RA5;
+        const stdExt = getExternal(cW, fH3);
 
         let overlapX, overlapY;
         if (tW > 0) {
@@ -791,10 +836,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function drawCnv() {
         const container = document.querySelector('.right-panel-inner');
+        if (!validDims()) {
+            cnv.width = 1; cnv.height = 1; cnv.style.width = '0px'; cnv.style.height = '0px';
+            updateArrows(getNum('cW'));
+            return;
+        }
         const cW = getNum('cW'), cH = getNum('cH');
         const fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
-        const sf = container.clientWidth / cW;
-        const tw = Math.round(cW * sf), th = Math.round(cH * sf);
+        const pbH = getNum('partBHeight');
+        const showB = pbH > OVERLAP_MM;
+        const dispH = showB ? cH - OVERLAP_MM + pbH : cH;
+        const dpr0 = window.devicePixelRatio || 1;
+        const sf = Math.min(container.clientWidth / cW, 12000 / (dispH * dpr0));
+        const tw = Math.round(cW * sf), th = Math.round(dispH * sf);
         const dpr = window.devicePixelRatio || 1;
         if (cnv.width !== tw * dpr || cnv.height !== th * dpr) { cnv.width = tw * dpr; cnv.height = th * dpr; cnv.style.width = tw + 'px'; cnv.style.height = th + 'px'; }
         ctx.clearRect(0, 0, cnv.width, cnv.height);
@@ -813,6 +867,7 @@ window.addEventListener('DOMContentLoaded', () => {
             ctx.beginPath(); ctx.moveTo(0, cH - 12); ctx.lineTo(cW, cH - 12);
             ctx.strokeStyle = 'black'; ctx.lineWidth = 1; ctx.stroke();
         }
+        if (showB) drawPartB(cW, cH, pbH, dispH);
         ctx.restore();
         updateArrows(cW);
     }
@@ -842,6 +897,28 @@ window.addEventListener('DOMContentLoaded', () => {
         ctx.restore();
     }
 
+    function drawPartB(cW, cH, pbH, dispH) {
+        const bTop = cH - OVERLAP_MM;
+        ctx.fillStyle = '#f4f4f4';
+        ctx.fillRect(0, cH, cW, pbH - OVERLAP_MM);
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.fillRect(0, bTop, cW, OVERLAP_MM);
+        ctx.save();
+        ctx.setLineDash([12, 8]);
+        ctx.strokeStyle = '#777'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(0, bTop, cW, pbH);
+        ctx.restore();
+        ctx.fillStyle = '#777';
+        ctx.textAlign = 'center';
+        const mid = bTop + pbH / 2;
+        ctx.font = 'bold 34px Arial';
+        ctx.fillText('PART B | BLANK CANVAS', cW / 2, mid - 30);
+        ctx.font = '26px Arial';
+        ctx.fillText(`PART B HEIGHT: ${round1(pbH)}mm (INC. ${OVERLAP_MM}mm OVERLAP)`, cW / 2, mid + 10);
+        ctx.fillText(`PART A HEIGHT: ${round1(cH)}mm | TOTAL HEIGHT: ${round1(dispH)}mm`, cW / 2, mid + 45);
+        ctx.textAlign = 'left';
+    }
+
     function drawLines(cW, cH, fH1, fH2, fH3) {
         ctx.strokeStyle = 'black'; ctx.lineWidth = 1;
         ctx.strokeRect(0, 0, cW, cH);
@@ -855,11 +932,8 @@ window.addEventListener('DOMContentLoaded', () => {
     function drawText(cW, cH, fH1) {
         ctx.font = '2.5mm Arial'; ctx.fillStyle = 'black';
         ctx.textAlign = 'center';
-        const isPartA = activeTemplate === 'RA5A' || activeTemplate === 'RA6A' || activeTemplate === 'RA7';
-        const isPartB = activeTemplate === 'RA5B' || activeTemplate === 'RA6B';
-        if (!isPartB) ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
-        if (isPartA) ctx.fillText('ATTACH PART B TO THIS FACE', cW / 2, cH - 6);
-        else ctx.fillText('APPLY TUBE TO THIS FACE', cW / 2, cH - 6);
+        ctx.fillText('WELD ZIP PROFILE HERE', cW / 2, 9);
+        ctx.fillText('ATTACH PART B TO THIS FACE', cW / 2, cH - 6);
         ctx.textAlign = 'left';
         ctx.fillText(fn, 15, fH1 + 15);
     }
@@ -886,7 +960,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function updateDpiNote() {
         const noteEl = document.getElementById('dpiNote');
-        if (activeTemplate === 'RA7B' || activeTemplate === 'RA5B' || activeTemplate === 'RA6B') { noteEl.style.display = 'none'; return; }
+        if (!validDims()) { noteEl.style.display = 'none'; return; }
         const info = calcDpiInfo();
         noteEl.style.display = 'block';
         if (!upImg || info.minDpi === null) {
@@ -901,6 +975,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     async function exportLowResJPG() {
+        if (!validDims() || needsOverall()) { updateOverallWarn(); return; }
         const cW = getNum('cW'), fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
         const mountSize = getNum('mountSize');
         let mountColour = document.getElementById('mountColour').value;
@@ -1185,8 +1260,6 @@ window.addEventListener('DOMContentLoaded', () => {
             pCtx.font = `${fontSize}px Arial`; pCtx.fillStyle = '#444'; pCtx.textAlign = 'center';
             pCtx.fillText(`${totalWidthMm.toFixed(1)}mm`, (outerX + outerRight) / 2, botLineY + guideGap + 5);
         }
-
-        // ── Disclaimer text, now with optional viewing distance line ────────────
         const dpiInfo = calcDpiInfo();
         const isRosenstielsImg = !!document.getElementById('imgUrl').value.trim();
         let sharpnessText = '';
@@ -1232,6 +1305,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     function genPDF() {
+        if (!validDims()) return;
         const cW = getNum('cW'), cH = getNum('cH');
         const fH1 = getNum('fH1'), fH2 = getNum('fH2'), fH3 = getNum('fH3');
         fn = document.getElementById('fn').value || 'default_filename';
@@ -1239,7 +1313,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const cWpt = cW * 72 / 25.4, cHpt = cH * 72 / 25.4;
         const pdf = new jsPDF({ orientation: cW > cH ? 'landscape' : 'portrait', unit: 'pt', format: [cWpt, cHpt] });
 
-        if (activeTemplate !== 'RA7B' && activeTemplate !== 'RA5B' && activeTemplate !== 'RA6B' && upImg) {
+        if (upImg) {
             const aW = cW - SIDE_MARGIN_MM * 2;
             const fit = getImgFitSize(upImg, aW, fH3);
             const sW = fit.sW, sH = fit.sH;
@@ -1266,16 +1340,14 @@ window.addEventListener('DOMContentLoaded', () => {
         pdf.line(0, aH * 72 / 25.4, cWpt, aH * 72 / 25.4);
         if (drawExtraLine) { pdf.setLineWidth(1); pdf.line(0, (cH - 12) * 72 / 25.4, cWpt, (cH - 12) * 72 / 25.4); }
         pdf.setFont('Helvetica', 2 * 72 / 25.4);
-        const isPartA = activeTemplate === 'RA5A' || activeTemplate === 'RA6A' || activeTemplate === 'RA7';
-        const isPartB = activeTemplate === 'RA5B' || activeTemplate === 'RA6B';
-        if (!isPartB) pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
-        if (isPartA) pdf.text('ATTACH PART B TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
-        else pdf.text('APPLY TUBE TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
+        const isPartA = true;
+        pdf.text('WELD ZIP PROFILE HERE', cW / 2 * 72 / 25.4, 9 * 72 / 25.4, { align: 'center' });
+        pdf.text('ATTACH PART B TO THIS FACE', cW / 2 * 72 / 25.4, (cH - 6) * 72 / 25.4, { align: 'center' });
         pdf.text(fn, 15 * 72 / 25.4, (fH1 + 15) * 72 / 25.4);
         const pbHeight = getNum('partBHeight');
         if (isPartA && pbHeight > 0) {
             const pbWidth = cW;
-            const combined = cH + pbHeight - 12;
+            const combined = round1(cH + pbHeight - OVERLAP_MM);
             const lineX = 15 * 72 / 25.4, lineY = (fH1 + 23) * 72 / 25.4;
             pdf.setFont('Helvetica', 'bold');
             pdf.text('PART B REQUIRED - CUT BLANK CANVAS TO FOLLOWING DIMENSIONS ', lineX, lineY);
@@ -1297,7 +1369,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (fH1) measParts.push(`ZIP WELD AREA: ${fH1}mm`);
         if (fH2) measParts.push(`GAP BELOW ZIP: ${fH2}mm`);
         if (fH3) measParts.push(`ARTWORK HEIGHT: ${fH3}mm`);
-        if (visW !== null && activeTemplate !== 'RA7' && parseFloat(visW) !== 0) measParts.push(`IMAGE WIDTH: ${visW}mm`);
+        if (visW !== null && parseFloat(visW) !== 0) measParts.push(`IMAGE WIDTH: ${visW}mm`);
         if (visH !== null && parseFloat(visH) !== 0) measParts.push(`IMAGE HEIGHT: ${visH}mm`);
         if (cW) measParts.push(`PDF WIDTH: ${cW}mm`);
         if (cH) measParts.push(`PDF HEIGHT: ${cH}mm`);
@@ -1469,11 +1541,42 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('fn').addEventListener('input', function() { fn = this.value; drawCnv(); });
-    ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { drawCnv(); updateFramePreview(); updateDpiNote(); }));
+    const CUSTOM_FIELDS = ['cW', 'totalH', 'fH1', 'fH2', 'fH3', 'targetW', 'targetH'];
+    let customValues = null;
+
+    function saveCustom() {
+        customValues = {};
+        CUSTOM_FIELDS.forEach(id => customValues[id] = document.getElementById(id).value);
+    }
+
+    function setActiveButton(key) {
+        const map = { RA5: 'ra5aBtn', RA6: 'ra6aBtn', RA7: 'ra7aBtn', CUSTOM: 'customBtn' };
+        Object.values(map).forEach(id => document.getElementById(id).classList.remove('active-btn'));
+        if (map[key]) document.getElementById(map[key]).classList.add('active-btn');
+        document.getElementById('customBtn').style.display = customValues ? '' : 'none';
+    }
+
+    function goCustom() {
+        activeTemplate = 'CUSTOM';
+        saveCustom();
+        setActiveButton('CUSTOM');
+    }
+
+    ['cW', 'totalH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { goCustom(); syncHeights(); drawCnv(); updateFramePreview(); updateDpiNote(); }));
+    ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', () => { if (activeTemplate === 'CUSTOM') saveCustom(); }));
+
+    document.getElementById('customBtn').addEventListener('click', () => {
+        if (!customValues) return;
+        CUSTOM_FIELDS.forEach(id => document.getElementById(id).value = customValues[id]);
+        activeTemplate = 'CUSTOM';
+        setActiveButton('CUSTOM');
+        syncHeights();
+        drawCnv(); updateFramePreview(); updateDpiNote();
+    });
     document.getElementById('mountSize').addEventListener('input', updateFramePreview);
     document.getElementById('mountSize').addEventListener('change', updateFramePreview);
     document.getElementById('mountOutside').addEventListener('change', updateFramePreview);
-    ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', updateFramePreview));
+    ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', () => { updateOverallWarn(); updateFramePreview(); }));
     document.getElementById('frameThickness').addEventListener('input', updateFramePreview);
     document.getElementById('frameThickness').addEventListener('change', updateFramePreview);
     document.getElementById('mountColourCustom').addEventListener('input', updateFramePreview);
@@ -1548,7 +1651,7 @@ window.addEventListener('DOMContentLoaded', () => {
     async function updateFramePreview() {
         const fH3 = getNum('fH3');
         const section = document.getElementById('framePreviewSection');
-        if (fH3 <= 0) { section.style.display = 'none'; return; }
+        if (!validDims()) { section.style.display = 'none'; return; }
 
         const selectedFrame = document.getElementById('frameSelect').value;
         const previewCnv = document.getElementById('framePreviewCnv');
@@ -1788,25 +1891,24 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function setValues(cW, cH, fH1, fH2, fH3) {
-        ['cW', 'cH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, cH, fH1, fH2, fH3][i]);
+    function applyPreset(key, cW, totalH, fH1, fH2, fH3) {
+        ['cW', 'totalH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, totalH, fH1, fH2, fH3][i]);
         document.getElementById('targetW').value = '';
         document.getElementById('targetH').value = '';
-        drawCnv();
+        activeTemplate = key;
+        setActiveButton(key);
+        drawExtraLine = true;
+        syncHeights();
+        drawCnv(); updateFramePreview(); updateDpiNote();
     }
 
-    function setPartBDefaults(h) {
-        document.getElementById('partBHeight').value = h;
-    }
-
-    document.getElementById('ra5aBtn').addEventListener('click', () => { setValues(1296, 844, 12, 44, 776); setPartBDefaults(993); drawExtraLine = true; activeTemplate = 'RA5A'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra5bBtn').addEventListener('click', () => { setValues(1296, 993, 0, 0, 0); drawExtraLine = false; activeTemplate = 'RA5B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra6aBtn').addEventListener('click', () => { setValues(1516, 981, 12, 37, 920); setPartBDefaults(1131); drawExtraLine = true; activeTemplate = 'RA6A'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra6bBtn').addEventListener('click', () => { setValues(1516, 1131, 0, 0, 0); drawExtraLine = false; activeTemplate = 'RA6B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra7aBtn').addEventListener('click', () => { setValues(1786, 1127.5, 12, 46.5, 1057); setPartBDefaults(1284.5); drawExtraLine = true; activeTemplate = 'RA7'; drawCnv(); updateFramePreview(); updateDpiNote(); });
-    document.getElementById('ra7bBtn').addEventListener('click', () => { setValues(1786, 1284.5, 12, 0, 0); drawExtraLine = false; activeTemplate = 'RA7B'; drawCnv(); updateFramePreview(); updateDpiNote(); });
+    document.getElementById('ra5aBtn').addEventListener('click', () => applyPreset('RA5', 1296, 1825, 12, 44, 776));
+    document.getElementById('ra6aBtn').addEventListener('click', () => applyPreset('RA6', 1516, 2100, 12, 37, 920));
+    document.getElementById('ra7aBtn').addEventListener('click', () => applyPreset('RA7', 1786, 2400, 12, 46.5, 1057));
 
 
+    setActiveButton('RA5');
+    syncHeights();
     updateLayout();
     drawCnv();
     updateDpiNote();
