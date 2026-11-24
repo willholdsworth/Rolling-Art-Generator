@@ -175,7 +175,7 @@
             <div class="two-col" style="margin-top:8px;">
                 <div>
                     <label for="cH">PART A HEIGHT (mm):</label>
-                    <input type="number" id="cH" value="844" readonly>
+                    <input type="number" id="cH" value="844" step="0.1">
                 </div>
                 <div>
                     <label for="partBHeight">PART B HEIGHT INC. 12mm OVERLAP (mm):</label>
@@ -754,13 +754,29 @@ window.addEventListener('DOMContentLoaded', () => {
 
     function round1(v) { return Math.round(v * 10) / 10; }
 
-    function syncHeights() {
-        const partA = round1(getNum('fH1') + getNum('fH2') + getNum('fH3') + OVERLAP_MM);
-        document.getElementById('cH').value = partA;
+    const ROLL_MAX_MM = 1495;
+    let partAManual = null;
+
+    function syncHeights(skipWriteA) {
+        const minA = round1(getNum('fH1') + getNum('fH2') + getNum('fH3') + OVERLAP_MM);
         const total = getNum('totalH');
+        let partA = partAManual !== null ? Math.max(minA, round1(partAManual)) : minA;
+        if (partAManual === null && total > 0 && Math.min(getNum('cW'), total - partA + OVERLAP_MM) > ROLL_MAX_MM) {
+            partA = Math.max(minA, round1((total + OVERLAP_MM) / 2));
+        }
+        if (!skipWriteA) document.getElementById('cH').value = partA;
         const partB = round1(total - partA + OVERLAP_MM);
         document.getElementById('partBHeight').value = total > 0 && partB > OVERLAP_MM ? partB : '';
+        updateRollWarn(partA, partB);
         updateOverallWarn();
+    }
+
+    function updateRollWarn(partA, partB) {
+        const w = getNum('cW');
+        const aBad = Math.min(w, partA) > ROLL_MAX_MM;
+        const bBad = partB > OVERLAP_MM && Math.min(w, partB) > ROLL_MAX_MM;
+        document.getElementById('cH').style.borderColor = aBad ? '#c00' : '#000';
+        document.getElementById('partBHeight').style.borderColor = bBad ? '#c00' : '#000';
     }
 
     function validDims() {
@@ -1547,6 +1563,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function saveCustom() {
         customValues = {};
         CUSTOM_FIELDS.forEach(id => customValues[id] = document.getElementById(id).value);
+        customValues.partAManual = partAManual;
     }
 
     function setActiveButton(key) {
@@ -1565,9 +1582,26 @@ window.addEventListener('DOMContentLoaded', () => {
     ['cW', 'totalH', 'fH1', 'fH2', 'fH3'].forEach(id => document.getElementById(id).addEventListener('input', () => { goCustom(); syncHeights(); drawCnv(); updateFramePreview(); updateDpiNote(); }));
     ['targetW', 'targetH'].forEach(id => document.getElementById(id).addEventListener('input', () => { if (activeTemplate === 'CUSTOM') saveCustom(); }));
 
+    function readPartAManual() {
+        const v = document.getElementById('cH').value.trim();
+        partAManual = v === '' ? null : getNum('cH');
+    }
+    document.getElementById('cH').addEventListener('input', () => {
+        readPartAManual();
+        syncHeights(true);
+        if (activeTemplate === 'CUSTOM') saveCustom();
+    });
+    document.getElementById('cH').addEventListener('change', () => {
+        readPartAManual();
+        syncHeights();
+        if (activeTemplate === 'CUSTOM') saveCustom();
+        drawCnv(); updateFramePreview();
+    });
+
     document.getElementById('customBtn').addEventListener('click', () => {
         if (!customValues) return;
         CUSTOM_FIELDS.forEach(id => document.getElementById(id).value = customValues[id]);
+        partAManual = customValues.partAManual ?? null;
         activeTemplate = 'CUSTOM';
         setActiveButton('CUSTOM');
         syncHeights();
@@ -1895,6 +1929,7 @@ window.addEventListener('DOMContentLoaded', () => {
         ['cW', 'totalH', 'fH1', 'fH2', 'fH3'].forEach((id, i) => document.getElementById(id).value = [cW, totalH, fH1, fH2, fH3][i]);
         document.getElementById('targetW').value = '';
         document.getElementById('targetH').value = '';
+        partAManual = null;
         activeTemplate = key;
         setActiveButton(key);
         drawExtraLine = true;
