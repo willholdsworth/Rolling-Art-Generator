@@ -755,14 +755,15 @@ window.addEventListener('DOMContentLoaded', () => {
     function round1(v) { return Math.round(v * 10) / 10; }
 
     const ROLL_MAX_MM = 1495;
+    const ROLL_MAX_B_MM = 1524;
     let partAManual = null;
 
     function syncHeights(skipWriteA) {
         const minA = round1(getNum('fH1') + getNum('fH2') + getNum('fH3') + OVERLAP_MM);
         const total = getNum('totalH');
         let partA = partAManual !== null ? Math.max(minA, round1(partAManual)) : minA;
-        if (partAManual === null && total > 0 && Math.min(getNum('cW'), total - partA + OVERLAP_MM) > ROLL_MAX_MM) {
-            partA = Math.max(minA, round1((total + OVERLAP_MM) / 2));
+        if (partAManual === null && total > 0 && Math.min(getNum('cW'), total - partA + OVERLAP_MM) > ROLL_MAX_B_MM) {
+            partA = Math.max(minA, round1(total + OVERLAP_MM - ROLL_MAX_B_MM));
         }
         if (!skipWriteA) document.getElementById('cH').value = partA;
         const partB = round1(total - partA + OVERLAP_MM);
@@ -774,7 +775,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function updateRollWarn(partA, partB) {
         const w = getNum('cW');
         const aBad = Math.min(w, partA) > ROLL_MAX_MM;
-        const bBad = partB > OVERLAP_MM && Math.min(w, partB) > ROLL_MAX_MM;
+        const bBad = partB > OVERLAP_MM && Math.min(w, partB) > ROLL_MAX_B_MM;
         document.getElementById('cH').style.borderColor = aBad ? '#c00' : '#000';
         document.getElementById('partBHeight').style.borderColor = bBad ? '#c00' : '#000';
     }
